@@ -9,12 +9,18 @@ import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.model.Chat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Optional;
 
 @BotController
 @Slf4j
 public class KairosBotRequestHandler implements TelegramMvcController {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public String getToken() {
@@ -35,6 +41,18 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         } else {
             return "Matricola non valida";
         }
+    }
+
+    @MessageRequest("/password {password}")
+    public String setPassword(@BotPathVariable("password") String password, Chat chat) {
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (optionalUser.isPresent()) {
+            final User user = optionalUser.get();
+            user.setPassword(passwordEncoder.encode(password));
+            userRepository.save(user);
+            return "Password cifrata e salvata con successo";
+        }
+        return "Imposta prima la matricola";
     }
 
     private boolean isMatricolaValid(String matricola) {
