@@ -1,9 +1,16 @@
 package com.guglielmo.kairosbookerspring.db.user;
 
+import lombok.*;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "user")
+@Getter
+@Setter
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
