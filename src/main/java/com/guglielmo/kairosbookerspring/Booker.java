@@ -7,13 +7,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.List;
 
 @Slf4j
-@Component
 public class Booker {
 
     private WebDriver driver;
@@ -75,6 +73,4 @@ public class Booker {
 
     }
 
-    private void checkCourse(String course) {
-    }
 }
