@@ -22,4 +22,7 @@ public class User {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "chat_id")
+    private Long chadId;
+
 }

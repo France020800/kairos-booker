@@ -6,6 +6,7 @@ import com.github.kshashov.telegram.api.bind.annotation.BotPathVariable;
 import com.github.kshashov.telegram.api.bind.annotation.request.MessageRequest;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
+import com.pengrad.telegrambot.model.Chat;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @BotController
@@ -18,8 +19,11 @@ public class KairosBot implements TelegramMvcController {
     }
 
     @MessageRequest("/matricola {username:[0-9]{7}}")
-    public String setMatricola(@BotPathVariable("username") String username) {
-        userRepository.save(User.builder().username(username).build());
+    public String setMatricola(@BotPathVariable("username") String username, Chat chat) {
+        userRepository.save(User.builder()
+                .username(username)
+                        .chadId(chat.id())
+                .build());
         return "Matricola "+username+" salvata";
     }
 }
