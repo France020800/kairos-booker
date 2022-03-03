@@ -1,6 +1,5 @@
 package com.guglielmo.kairosbookerspring;
 
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -23,7 +22,7 @@ public class Booker {
         driver = new ChromeDriver();
 
     }
-    public void book(String username, String passsword) throws InterruptedException {
+    public void book(String username, String passsword) {
 
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
