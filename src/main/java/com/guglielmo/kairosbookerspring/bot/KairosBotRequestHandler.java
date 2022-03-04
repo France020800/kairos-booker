@@ -21,18 +21,28 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @BotController
 @Slf4j
 public class KairosBotRequestHandler implements TelegramMvcController {
-    @Autowired
+
     private UserRepository userRepository;
 
-    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    private Booker booker;
 
     @Value("${bot.token}")
     private String botToken;
+
+    @Autowired
+    public KairosBotRequestHandler(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.booker = new Booker();
+    }
 
     @Override
     public String getToken() {
@@ -70,21 +80,48 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
 
     @MessageRequest("/prenota")
-    public BaseRequest book(Chat chat) {
+    public BaseRequest getCurses(Chat chat) {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isPresent()) {
             final User user = optionalUser.get();
-            final List<Lesson> courses = new Booker().getCourses(user.getMatricola(), user.getPassword());
-            final ReplyKeyboardMarkup testMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
-            courses.forEach(e -> testMenu.addRow(e.getCourseName()+" "+e.getDate()+" "+e.isBooked()));
+            final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
+            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + e.isBooked()));
             final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
                     .parseMode(ParseMode.HTML)
                     .disableWebPagePreview(true)
                     .disableNotification(true)
-                    .replyMarkup(testMenu);
+                    .replyMarkup(lessonsMenu);
             return request;
         }
         return null;
+    }
+
+    @MessageRequest("{lesson:.*}")
+    public String bookLesson(@BotPathVariable("lesson") String lesson, Chat chat) {
+        if (isLessonWrongFormat(lesson)) {
+            return "Comando non disponibile";
+        }
+        String courseName = getCourseName(lesson);
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (optionalUser.isPresent()) {
+            final User user = optionalUser.get();
+            booker.book(user.getMatricola(), user.getPassword(), lesson);
+            return "Lezione Prenotata";
+        }
+        return "Impossibile prenotare la lezione, accedi";
+    }
+
+    String getCourseName(String lesson) {
+        final Matcher matcher = Pattern.compile("([A-Z]* )*").matcher(lesson);
+        if (matcher.find()) {
+            return matcher.group(0).trim();
+        }
+        throw new IllegalArgumentException("Lesson format not valid");
+    }
+
+    boolean isLessonWrongFormat(String lesson) {
+        return !Pattern.matches("([A-Z]* )*- .*", lesson);
     }
 
 
