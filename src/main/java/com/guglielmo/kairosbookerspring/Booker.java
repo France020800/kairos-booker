@@ -22,7 +22,7 @@ public class Booker {
 
     }
 
-    public List<String> getCourses(String username, String passsword) {
+    public List<Lesson> getCourses(String username, String passsword) {
 
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
@@ -59,22 +59,30 @@ public class Booker {
 
         final List<WebElement> bookingsList = bookingsDiv.findElements(By.cssSelector(".row"));
 
-        final List<String> coursesList = new LinkedList<>();
+        final List<Lesson> lessonsList = new LinkedList<>();
 
         for (WebElement booking : bookingsList) {
             final WebElement bookingDate = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
             final WebElement bookingInfo = booking.findElement(By.xpath("//div[2]/div/div[2]"));
             final WebElement courseName = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final WebElement bookingStatus = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
 //            final WebElement bookingRoom = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > b"));
 
-            coursesList.add(courseName.getText() + " " + bookingDate.getText());
+
+            final Lesson lesson = Lesson.builder()
+                    .courseName(courseName.getText())
+                    .date(bookingDate.getText())
+                    .isBooked(!bookingStatus.getText().isEmpty())
+                    .build();
+
+            lessonsList.add(lesson);
             log.info("Booking date: " + bookingDate.getText() + "\n" +
                     "Booking info: " + bookingInfo.getText() + "\n");
         }
 
 
-        driver.quit();
-        return coursesList;
+//        driver.quit();
+        return lessonsList;
 
     }
 

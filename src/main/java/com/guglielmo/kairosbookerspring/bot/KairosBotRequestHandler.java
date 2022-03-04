@@ -5,6 +5,7 @@ import com.github.kshashov.telegram.api.bind.annotation.BotController;
 import com.github.kshashov.telegram.api.bind.annotation.BotPathVariable;
 import com.github.kshashov.telegram.api.bind.annotation.request.MessageRequest;
 import com.guglielmo.kairosbookerspring.Booker;
+import com.guglielmo.kairosbookerspring.Lesson;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.model.Chat;
@@ -73,9 +74,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isPresent()) {
             final User user = optionalUser.get();
-            final List<String> courses = new Booker().getCourses(user.getMatricola(), user.getPassword());
+            final List<Lesson> courses = new Booker().getCourses(user.getMatricola(), user.getPassword());
             final ReplyKeyboardMarkup testMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
-            courses.forEach(e -> testMenu.addRow(e));
+            courses.forEach(e -> testMenu.addRow(e.getCourseName()+" "+e.getDate()+" "+e.isBooked()));
             final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
                     .parseMode(ParseMode.HTML)
                     .disableWebPagePreview(true)
