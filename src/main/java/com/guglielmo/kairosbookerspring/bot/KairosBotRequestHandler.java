@@ -21,11 +21,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @BotController
 @Slf4j
+/**
+ * This class rapresent the bot that handles user's command sent through telegram
+ */
 public class KairosBotRequestHandler implements TelegramMvcController {
 
     private UserRepository userRepository;
@@ -37,6 +39,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     @Value("${bot.token}")
     private String botToken;
 
+    /**
+     * Constructor with autowired fields
+     *
+     * @param userRepository  Repository to store user credentials
+     * @param passwordEncoder Password encoder to store encrypted passwords
+     */
     @Autowired
     public KairosBotRequestHandler(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -49,6 +57,13 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return botToken;
     }
 
+    /**
+     * Method to set the username of a user
+     *
+     * @param matricola Username
+     * @param chat      The rapresentation of the chat with the user
+     * @return The outcome of the operation
+     */
     @MessageRequest("/matricola {matricola}")
     public String setMatricola(@BotPathVariable("matricola") String matricola, Chat chat) {
         if (isMatricolaValid(matricola)) {
@@ -65,6 +80,13 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
     }
 
+    /**
+     * Method to set the password of a user
+     *
+     * @param password Password
+     * @param chat     The rapresentation of the chat with the user
+     * @return The outcome of the operation
+     */
     @MessageRequest("/password {password}")
     public String setPassword(@BotPathVariable("password") String password, Chat chat) {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
@@ -79,6 +101,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     }
 
 
+    /**
+     * Method to display a menu with the lessons to book
+     *
+     * @param chat The rapresentation of the chat with the user
+     * @return The lessons menu
+     */
     @MessageRequest("/prenota")
     public BaseRequest getCurses(Chat chat) {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
@@ -97,12 +125,18 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return null;
     }
 
+    /**
+     * Method that given the lesson title books a lesson
+     *
+     * @param lesson Lesson to book
+     * @param chat   The rappresentation of the chat with the user
+     * @return The outcome of the operation
+     */
     @MessageRequest("{lesson:.*}")
     public String bookLesson(@BotPathVariable("lesson") String lesson, Chat chat) {
         if (isLessonWrongFormat(lesson)) {
             return "Comando non disponibile";
         }
-        String courseName = getCourseName(lesson);
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isPresent()) {
             final User user = optionalUser.get();
@@ -110,14 +144,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return "Lezione Prenotata";
         }
         return "Impossibile prenotare la lezione, accedi";
-    }
-
-    String getCourseName(String lesson) {
-        final Matcher matcher = Pattern.compile("([A-Z]* )*").matcher(lesson);
-        if (matcher.find()) {
-            return matcher.group(0).trim();
-        }
-        throw new IllegalArgumentException("Lesson format not valid");
     }
 
     boolean isLessonWrongFormat(String lesson) {
