@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.guglielmo</groupId>
     <artifactId>kairos-booker-spring</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <name>kairos-booker-spring</name>
     <description>kairos-booker-spring</description>
     <properties>
