@@ -17,7 +17,6 @@ import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +31,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
     private UserRepository userRepository;
 
-    private PasswordEncoder passwordEncoder;
 
     private Booker booker;
 
@@ -42,13 +40,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Constructor with autowired fields
      *
-     * @param userRepository  Repository to store user credentials
-     * @param passwordEncoder Password encoder to store encrypted passwords
+     * @param userRepository Repository to store user credentials
      */
     @Autowired
-    public KairosBotRequestHandler(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public KairosBotRequestHandler(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.booker = new Booker();
     }
 
