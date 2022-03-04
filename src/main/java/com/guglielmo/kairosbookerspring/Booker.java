@@ -9,6 +9,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
@@ -20,7 +21,8 @@ public class Booker {
         driver = new ChromeDriver();
 
     }
-    public void book(String username, String passsword) {
+
+    public List<String> getCourses(String username, String passsword) {
 
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
@@ -57,19 +59,22 @@ public class Booker {
 
         final List<WebElement> bookingsList = bookingsDiv.findElements(By.cssSelector(".row"));
 
+        final List<String> coursesList = new LinkedList<>();
+
         for (WebElement booking : bookingsList) {
             final WebElement bookingDate = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
             final WebElement bookingInfo = booking.findElement(By.xpath("//div[2]/div/div[2]"));
-//            final WebElement courseName = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final WebElement courseName = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
 //            final WebElement bookingRoom = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > b"));
 
-
+            coursesList.add(courseName.getText() + " " + bookingDate.getText());
             log.info("Booking date: " + bookingDate.getText() + "\n" +
-                    "Booking info: " + bookingInfo.getText() + "\n" );
+                    "Booking info: " + bookingInfo.getText() + "\n");
         }
 
 
-//        driver.quit();
+        driver.quit();
+        return coursesList;
 
     }
 

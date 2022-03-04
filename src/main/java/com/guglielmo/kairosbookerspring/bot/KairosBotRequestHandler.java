@@ -7,7 +7,6 @@ import com.github.kshashov.telegram.api.bind.annotation.request.MessageRequest;
 import com.guglielmo.kairosbookerspring.Booker;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
-import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.model.request.ParseMode;
@@ -16,8 +15,10 @@ import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 @BotController
@@ -29,7 +30,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private String botToken="5244556196:AAGhj7N-qcZBjR1_B9rmsaAgIn1rwxlSeYE";
+    @Value("${bot.token}")
+    private String botToken;
 
     @Override
     public String getToken() {
@@ -71,9 +73,10 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isPresent()) {
             final User user = optionalUser.get();
-            new Booker().book(user.getMatricola(),user.getPassword());
+            final List<String> courses = new Booker().getCourses(user.getMatricola(), user.getPassword());
             final ReplyKeyboardMarkup testMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
-            final SendMessage request = new SendMessage(user.getChadId(), "")
+            courses.forEach(e -> testMenu.addRow(e));
+            final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
                     .parseMode(ParseMode.HTML)
                     .disableWebPagePreview(true)
                     .disableNotification(true)

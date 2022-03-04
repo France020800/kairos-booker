@@ -5,6 +5,7 @@ import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,10 +15,13 @@ public class KairosBotMessanger {
 
     private TelegramBot bot;
 
+    @Value("${bot.token}")
+    private String botToken;
+
     @Autowired
     public KairosBotMessanger(UserRepository userRepository){
         this.userRepository=userRepository;
-        bot=new TelegramBot("5244556196:AAGhj7N-qcZBjR1_B9rmsaAgIn1rwxlSeYE");
+        bot=new TelegramBot(botToken);
     }
 
 
