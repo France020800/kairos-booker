@@ -109,16 +109,16 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         if (optionalUser.isPresent()) {
             final User user = optionalUser.get();
             final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
-            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Lezioni"));
             courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + e.isBooked()));
-            final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
+            final SendMessage request = new SendMessage(user.getChadId(), "Scegli una lezione")
                     .parseMode(ParseMode.HTML)
                     .disableWebPagePreview(true)
                     .disableNotification(true)
                     .replyMarkup(lessonsMenu);
             return request;
         }
-        return null;
+        return new SendMessage(chat.id(), "Imposta prima le credenziali");
     }
 
     @MessageRequest("/test")
