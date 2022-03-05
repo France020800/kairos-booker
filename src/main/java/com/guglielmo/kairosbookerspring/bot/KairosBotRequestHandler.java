@@ -61,11 +61,13 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     @MessageRequest("/matricola {matricola}")
     public String setMatricola(@BotPathVariable("matricola") String matricola, Chat chat) {
         if (isMatricolaValid(matricola)) {
-            final User user = User.builder()
-                    .matricola(matricola)
-                    .chadId(chat.id())
-                    .username(chat.username())
-                    .build();
+            final User user = userRepository.findByChadId(chat.id())
+                    .orElse(User.builder()
+                            .matricola(matricola)
+                            .chadId(chat.id())
+                            .username(chat.username())
+                            .build());
+            user.setMatricola(matricola);
             userRepository.save(user);
             log.info("Utente salvato {}", user);
             return "Matricola " + matricola + " salvata";

@@ -26,7 +26,7 @@ public class User {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "chat_id")
+    @Column(name = "chat_id", unique = true)
     private Long chadId;
 
 }
