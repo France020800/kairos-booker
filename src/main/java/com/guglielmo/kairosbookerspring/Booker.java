@@ -57,8 +57,8 @@ public class Booker {
     }
 
     public List<Lesson> getCourses(String username, String passsword) {
-        driver=new ChromeDriver();
-        wait= new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         final List<WebElement> bookingsList = loginAndGetBookings(username, passsword);
 
         final List<Lesson> lessonsList = new LinkedList<>();
@@ -88,10 +88,9 @@ public class Booker {
     }
 
 
-
     public void book(String username, String password, String lesson) {
-       driver=new ChromeDriver();
-        wait= new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        driver = new ChromeDriver();
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
 
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 

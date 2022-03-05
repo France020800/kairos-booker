@@ -9,9 +9,7 @@ import com.guglielmo.kairosbookerspring.Lesson;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.model.Chat;
-import com.pengrad.telegrambot.model.request.KeyboardButton;
-import com.pengrad.telegrambot.model.request.ParseMode;
-import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
+import com.pengrad.telegrambot.model.request.*;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -116,6 +114,24 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     .disableWebPagePreview(true)
                     .disableNotification(true)
                     .replyMarkup(lessonsMenu);
+            return request;
+        }
+        return null;
+    }
+
+    @MessageRequest("/test")
+    public BaseRequest test(Chat chat) {
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (optionalUser.isPresent()) {
+            final User user = optionalUser.get();
+            final InlineKeyboardMarkup inlineButtons = new InlineKeyboardMarkup();
+            inlineButtons.addRow(new InlineKeyboardButton("Test"));
+            inlineButtons.addRow(new InlineKeyboardButton("Test 2"));
+            final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(inlineButtons);
             return request;
         }
         return null;
