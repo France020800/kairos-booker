@@ -77,18 +77,16 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("/matricola")
     public String setMatricola(Chat chat) {
-        try {
-            final User user = userRepository.findByChadId(chat.id()).get();
-            if (user.isAdding_password())
-                return "Sono in attesa di una matricola, non puoi usare questo comando adesso!";
-            user.setAdding_matricola(true);
-            userRepository.save(user);
-            return "Inserisci adesso la tua matricola";
-        } catch (Exception e) {
-            log.info(e.getMessage());
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (!optionalUser.isPresent())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
-        }
+        final User user = optionalUser.get();
+        if (user.isAdding_password())
+            return "Sono in attesa di una matricola, non puoi usare questo comando adesso!";
+        user.setAdding_matricola(true);
+        userRepository.save(user);
+        return "Inserisci adesso la tua matricola";
     }
 
     /**
@@ -98,20 +96,17 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("/password")
     public String setPassword(Chat chat) {
-        try {
-            final User user = userRepository.findByChadId(chat.id()).get();
-            if (user.isAdding_matricola())
-                return "Sono in attesa di una matricola, non puoi usare questo comando adesso!";
-            user.setAdding_password(true);
-            userRepository.save(user);
-            return "Inserisci adesso la tua password";
-        } catch (Exception e) {
-            log.info(e.getMessage());
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (!optionalUser.isPresent())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
-        }
+        final User user = optionalUser.get();
+        if (user.isAdding_matricola())
+            return "Sono in attesa di una matricola, non puoi usare questo comando adesso!";
+        user.setAdding_password(true);
+        userRepository.save(user);
+        return "Inserisci adesso la tua password";
     }
-
 
     /**
      * Method to display a menu with the lessons to book
@@ -121,30 +116,26 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("/prenota")
     public BaseRequest getCurses(Chat chat) {
-        try {
-            final User user = userRepository.findByChadId(chat.id()).get();
-            if (user.isAdding_matricola()||user.isAdding_password())
-                return new SendMessage(chat.id(), "Sono in attesa di una matricola o password.\n" +
-                        "Non puoi usare un comando adesso!");
-            final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-            if (optionalUser.isPresent()) {
-                // final User user = optionalUser.get();
-                final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
-                final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
-                courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + e.isBooked()));
-                final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
-                        .parseMode(ParseMode.HTML)
-                        .disableWebPagePreview(true)
-                        .disableNotification(true)
-                        .replyMarkup(lessonsMenu);
-                return request;
-            }
-            return null;
-        } catch (Exception e) {
-            final SendMessage request = new SendMessage(chat.id(), "Non è stato effettuato il login\n" +
-                    "Devi inserire prima una matricola e password");
-            return request;
-        }
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (!optionalUser.isPresent())
+            return new SendMessage(chat.id(), "Utente non registrato!\n" +
+                    "Per favore reinizializza il bot con il comando /start");
+        final User user = optionalUser.get();
+        if (user.isAdding_matricola()||user.isAdding_password())
+            return new SendMessage(chat.id(), "Sono in attesa di una matricola o password.\n" +
+                    "Non puoi usare un comando adesso!");
+        if (user.getPassword() == null || user.getMatricola() == null)
+            return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
+                    "Inserire /matricola e /password");
+        final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
+        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
+        courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + e.isBooked()));
+        final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
+                .parseMode(ParseMode.HTML)
+                .disableWebPagePreview(true)
+                .disableNotification(true)
+                .replyMarkup(lessonsMenu);
+        return request;
     }
 
     /**
@@ -153,18 +144,17 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @param chat The rapresentation of the chat with the user
      * @return The data of the user
      */
-    @MessageRequest("/visualizza informazioni")
+    @MessageRequest("/dati")
     public String getUserData(Chat chat) {
-        try {
-            final User user = userRepository.findByChadId(chat.id()).get();
-            return "I tuoi dati: \n" +
-                    "Matricola: " + user.getMatricola() + "\n" +
-                    "Passord: " + user.getPassword();
-        } catch (Exception e) {
-            log.info(e.getMessage());
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (!optionalUser.isPresent())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
-        }
+        final User user = optionalUser.get();
+        return "I tuoi dati: \n" +
+                "Matricola: " + user.getMatricola() + "\n" +
+                "Password: " + user.getPassword() +"\n\n" +
+                "QUESTE INFORMAZIONI SONO VISIBILI SOLO A TE";
     }
 
     @MessageRequest("/test")
@@ -194,7 +184,13 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("{lesson:.*}")
     public String messageManager(@BotPathVariable("lesson") String message, Chat chat) {
-        final User user = userRepository.findByChadId(chat.id()).get();
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (!optionalUser.isPresent())
+            return "Utente non registrato!\n" +
+                    "Per favore reinizializza il bot con il comando /start";
+        final User user = optionalUser.get();
+
+        // Adding matricola
         if (user.isAdding_matricola()) {
             if (isMatricolaValid(message)) {
                 user.setMatricola(message);
@@ -205,28 +201,24 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             } else {
                 return "Matricola non valida";
             }
-        } else if (user.isAdding_password()) {
-            final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-            if (optionalUser.isPresent()) {
-//              user.setPassword(passwordEncoder.encode(password));
-                user.setPassword(message);
-                user.setAdding_password(false);
-                userRepository.save(user);
-                return "Password cifrata e salvata con successo";
-            }
+        }
+
+        // Adding password
+        else if (user.isAdding_password()) {
+//          user.setPassword(passwordEncoder.encode(password));
+            user.setPassword(message);
             user.setAdding_password(false);
             userRepository.save(user);
-            return "Imposta prima la matricola";
-        } else {
+            return "Password cifrata e salvata con successo";
+        }
+
+        // Choosing and book lesson
+        else {
             if (isLessonWrongFormat(message)) {
                 return "Comando non disponibile";
             }
-            final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-            if (optionalUser.isPresent()) {
-                booker.book(user.getMatricola(), user.getPassword(), message);
-                return "Lezione Prenotata";
-            }
-            return "Impossibile prenotare la lezione, accedi";
+            booker.book(user.getMatricola(), user.getPassword(), message);
+            return "Lezione Prenotata";
         }
     }
 
