@@ -117,6 +117,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     @MessageRequest("/prenota")
     public BaseRequest getCurses(Chat chat) {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+
         if (!optionalUser.isPresent())
             return new SendMessage(chat.id(), "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start");
