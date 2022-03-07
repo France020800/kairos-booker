@@ -29,4 +29,9 @@ public class User {
     @Column(name = "chat_id", unique = true)
     private Long chadId;
 
+    @Column(name = "adding_matricola")
+    private boolean adding_matricola;
+
+    @Column(name = "adding_password")
+    private boolean adding_password;
 }
