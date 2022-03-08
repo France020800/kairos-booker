@@ -98,7 +98,7 @@ public class Booker {
             final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
             for (WebElement courseName : coursesNameList) {
                 final Lesson lessonObject = createLesson(bookingDate, coursesNameList, bookingsStatusList, courseName);
-                if (lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + !bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty())) {
+                if (lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + (!bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty() ? "[🟢]" : "[🔴]"))) {
                     lessonToBook = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
                     lessonObject.setBooked(true);
                 }
