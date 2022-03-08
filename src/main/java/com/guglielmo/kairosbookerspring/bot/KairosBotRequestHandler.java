@@ -128,7 +128,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
         final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
-        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
+        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + e.isBooked()));
         final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
                 .parseMode(ParseMode.HTML)
@@ -218,7 +218,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 return new SendMessage(chat.id(), "Comando non disponibile");
             }
             final List<Lesson> courses = booker.book(user.getMatricola(), user.getPassword(), message);
-            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("ListaCorsi"));
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
             courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + e.isBooked()));
             final SendMessage request = new SendMessage(user.getChadId(), "Lezione prenotata")
                     .parseMode(ParseMode.HTML)
