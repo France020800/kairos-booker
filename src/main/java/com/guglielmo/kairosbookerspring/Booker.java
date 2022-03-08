@@ -98,15 +98,26 @@ public class Booker {
             final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
             for (WebElement courseName : coursesNameList) {
                 final Lesson lessonObject = createLesson(bookingDate, coursesNameList, bookingsStatusList, courseName);
-                if (lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + (!bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty() ? "[🟢]" : "[🔴]"))) {
+                boolean isBooked = !bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty();
+                if (lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + (isBooked ? "[🟢]" : "[🔴]"))) {
                     lessonToBook = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
-                    lessonObject.setBooked(true);
+                    lessonToBook.click();
+                    if (isBooked) {
+                        final WebElement confirmButton = wait
+                                .until(ExpectedConditions
+                                        .elementToBeClickable(By
+                                                .cssSelector("#popup_conferma_buttons_row > button.btn.normal-button.custom-btn-confirm")));
+                        confirmButton.click();
+                        lessonObject.setBooked(false);
+                    } else {
+                        lessonObject.setBooked(true);
+
+                    }
                 }
                 lessonsList.add(lessonObject);
             }
         }
 
-        lessonToBook.click();
         driver.close();
         return lessonsList;
     }
