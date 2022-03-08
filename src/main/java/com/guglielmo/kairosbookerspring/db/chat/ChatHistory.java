@@ -1,9 +1,7 @@
 package com.guglielmo.kairosbookerspring.db.chat;
 
 import com.github.kshashov.telegram.api.bind.annotation.BotController;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -12,6 +10,7 @@ import java.sql.Timestamp;
 @Table(name = "chat_history")
 @Data
 @Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class ChatHistory {
     @Id
