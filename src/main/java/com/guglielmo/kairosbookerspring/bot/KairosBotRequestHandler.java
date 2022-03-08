@@ -30,7 +30,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     private UserRepository userRepository;
 
 
-
     private Booker booker;
 
     @Value("${bot.token}")
@@ -122,7 +121,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start");
         final User user = optionalUser.get();
-        if (user.isAdding_matricola()||user.isAdding_password())
+        if (user.isAdding_matricola() || user.isAdding_password())
             return new SendMessage(chat.id(), "Sono in attesa di una matricola o password.\n" +
                     "Non puoi usare un comando adesso!");
         if (user.getPassword() == null || user.getMatricola() == null)
@@ -154,7 +153,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final User user = optionalUser.get();
         return "I tuoi dati: \n" +
                 "Matricola: " + user.getMatricola() + "\n" +
-                "Password: " + user.getPassword() +"\n\n" +
+                "Password: " + user.getPassword() + "\n\n" +
                 "QUESTE INFORMAZIONI SONO VISIBILI SOLO A TE";
     }
 
@@ -180,7 +179,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * Method that given the lesson title books a lesson
      *
      * @param message Lesson to book
-     * @param chat   The rappresentation of the chat with the user
+     * @param chat    The rappresentation of the chat with the user
      * @return The outcome of the operation
      */
     @MessageRequest("{lesson:.*}")
