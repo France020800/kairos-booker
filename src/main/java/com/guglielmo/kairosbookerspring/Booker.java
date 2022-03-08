@@ -65,50 +65,57 @@ public class Booker {
 
         for (WebElement booking : bookingsList) {
             final WebElement bookingDate = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
-            final List<WebElement> coursesName = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
             final WebElement bookingInfo = booking.findElement(By.xpath("//div[2]/div/div[2]"));
 //          final WebElement courseName = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
-            final List<WebElement> bookingsStatus = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
+            final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
 //          final WebElement bookingRoom = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > b"));
 
-            for (WebElement courseName : coursesName) {
-                final Lesson lesson = Lesson.builder()
-                        .courseName(courseName.getText())
-                        .date(bookingDate.getText())
-                        .isBooked(!bookingsStatus.get(coursesName.indexOf(courseName)).getText().isEmpty())
-                        .build();
+            for (WebElement courseName : coursesNameList) {
+                final Lesson lesson = createLesson(bookingDate, coursesNameList, bookingsStatusList, courseName);
                 lessonsList.add(lesson);
                 log.info("Booking date: " + bookingDate.getText() + "\n" +
                         "Booking info: " + bookingInfo.getText() + "\n");
             }
         }
 
-
         driver.close();
         return lessonsList;
     }
 
 
-    public void book(String username, String password, String lesson) {
+    public List<Lesson> book(String username, String password, String lesson) {
         driver = new ChromeDriver();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
 
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
+        final List<Lesson> lessonsList = new LinkedList<>();
 
         WebElement lessonToBook = null;
         for (WebElement booking : bookingsList) {
             final WebElement bookingDate = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
-            final List<WebElement> coursesName = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
-            final List<WebElement> bookingsStatus = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
-            for (WebElement courseName : coursesName) {
-                if (lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + !bookingsStatus.get(coursesName.indexOf(courseName)).getText().isEmpty())) {
-                    lessonToBook = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesName.indexOf(courseName));
+            final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
+            for (WebElement courseName : coursesNameList) {
+                if (lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + !bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty())) {
+                    lessonToBook = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
                 }
+                final Lesson lessonObject = createLesson(bookingDate, coursesNameList, bookingsStatusList, courseName);
+                lessonsList.add(lessonObject);
             }
         }
 
         lessonToBook.click();
         driver.close();
+        return lessonsList;
+    }
+
+    private Lesson createLesson(WebElement bookingDate, List<WebElement> coursesNameList, List<WebElement> bookingsStatusList, WebElement courseName) {
+        return Lesson.builder()
+                .courseName(courseName.getText())
+                .date(bookingDate.getText())
+                .isBooked(!bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty())
+                .build();
     }
 
 }
