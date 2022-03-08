@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Entity()
 @Table(name = "chat_history")
 @Data
-@Builder
+//@Builder
 @NoArgsConstructor
 public class ChatHistory {
     @Id

@@ -52,7 +52,7 @@ public class Booker {
 
         final WebElement bookingsDiv = driver.findElement(By.cssSelector("#prenotazioni_container"));
 
-        final List<WebElement> bookingsList = bookingsDiv.findElements(By.cssSelector(".row"));
+        final List<WebElement> bookingsList = bookingsDiv.findElements(By.id("box_"));
         return bookingsList;
     }
 
@@ -65,21 +65,22 @@ public class Booker {
 
         for (WebElement booking : bookingsList) {
             final WebElement bookingDate = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
+            final List<WebElement> coursesName = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
             final WebElement bookingInfo = booking.findElement(By.xpath("//div[2]/div/div[2]"));
-            final WebElement courseName = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
-            final WebElement bookingStatus = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
-//            final WebElement bookingRoom = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > b"));
+//          final WebElement courseName = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final List<WebElement> bookingsStatus = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
+//          final WebElement bookingRoom = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > b"));
 
-
-            final Lesson lesson = Lesson.builder()
-                    .courseName(courseName.getText())
-                    .date(bookingDate.getText())
-                    .isBooked(!bookingStatus.getText().isEmpty())
-                    .build();
-
-            lessonsList.add(lesson);
-            log.info("Booking date: " + bookingDate.getText() + "\n" +
-                    "Booking info: " + bookingInfo.getText() + "\n");
+            for (WebElement courseName : coursesName) {
+                final Lesson lesson = Lesson.builder()
+                        .courseName(courseName.getText())
+                        .date(bookingDate.getText())
+                        .isBooked(!bookingsStatus.get(coursesName.indexOf(courseName)).getText().isEmpty())
+                        .build();
+                lessonsList.add(lesson);
+                log.info("Booking date: " + bookingDate.getText() + "\n" +
+                        "Booking info: " + bookingInfo.getText() + "\n");
+            }
         }
 
 
@@ -94,15 +95,19 @@ public class Booker {
 
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
-        final WebElement lessonToBook = bookingsList.stream().filter(e -> {
-            final WebElement bookingDate = e.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
-            final WebElement courseName = e.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
-            final WebElement bookingStatus = e.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
-            return lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + !bookingStatus.getText().isEmpty());
-        }).findFirst().orElseThrow();
+        WebElement lessonToBook = null;
+        for (WebElement booking : bookingsList) {
+            final WebElement bookingDate = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
+            final List<WebElement> coursesName = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final List<WebElement> bookingsStatus = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
+            for (WebElement courseName : coursesName) {
+                if (lesson.equals(courseName.getText() + " - " + bookingDate.getText() + " " + !bookingsStatus.get(coursesName.indexOf(courseName)).getText().isEmpty())) {
+                    lessonToBook = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesName.indexOf(courseName));
+                }
+            }
+        }
 
-        //Click the booking button
-        wait.until(ExpectedConditions.elementToBeClickable(lessonToBook.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")))).click();
+        lessonToBook.click();
         driver.close();
     }
 

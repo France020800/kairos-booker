@@ -184,11 +184,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @return The outcome of the operation
      */
     @MessageRequest("{lesson:.*}")
-    public String messageManager(@BotPathVariable("lesson") String message, Chat chat) {
+    public BaseRequest messageManager(@BotPathVariable("lesson") String message, Chat chat) {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
         if (!optionalUser.isPresent())
-            return "Utente non registrato!\n" +
-                    "Per favore reinizializza il bot con il comando /start";
+            return new SendMessage(chat.id(), "Utente non registrato!\n" +
+                    "Per favore reinizializza il bot con il comando /start");
         final User user = optionalUser.get();
 
         // Adding matricola
@@ -198,9 +198,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 user.setAdding_matricola(false);
                 userRepository.save(user);
                 log.info("Utente salvato {}", user);
-                return "Matricola " + message + " salvata";
+                return new SendMessage(chat.id(), "Matricola " + message + " salvata");
             } else {
-                return "Matricola non valida";
+                return new SendMessage(chat.id(), "Matricola non valida");
             }
         }
 
@@ -210,16 +210,24 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             user.setPassword(message);
             user.setAdding_password(false);
             userRepository.save(user);
-            return "Password cifrata e salvata con successo";
+            return new SendMessage(chat.id(), "Password cifrata e salvata con successo");
         }
 
         // Choosing and book lesson
         else {
             if (isLessonWrongFormat(message)) {
-                return "Comando non disponibile";
+                return new SendMessage(chat.id(), "Comando non disponibile");
             }
             booker.book(user.getMatricola(), user.getPassword(), message);
-            return "Lezione Prenotata";
+            final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Test"));
+            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + e.isBooked()));
+            final SendMessage request = new SendMessage(user.getChadId(), "Lezione prenotata")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(lessonsMenu);
+            return request;
         }
     }
 

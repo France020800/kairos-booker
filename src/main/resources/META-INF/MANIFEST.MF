@@ -1,0 +1,42 @@
+Manifest-Version: 1.0
+Main-Class: com.guglielmo.kairosbookerspring.KairosBookerSpringApplicati
+ on
+Class-Path: spring-tx-5.3.16.jar h2-1.4.200.jar logback-classic-1.2.10.j
+ ar log4j-to-slf4j-2.17.1.jar selenium-ie-driver-3.141.59.jar spring-boo
+ t-starter-jdbc-2.6.4.jar jboss-logging-3.4.3.Final.jar jakarta.transact
+ ion-api-1.3.3.jar j2objc-annotations-1.1.jar spring-beans-5.3.16.jar ko
+ tlin-stdlib-jdk7-1.6.10.jar logging-interceptor-3.14.9.jar jul-to-slf4j
+ -1.7.36.jar java-telegram-bot-api-5.6.0.jar spring-boot-starter-2.6.4.j
+ ar spring-boot-autoconfigure-2.6.4.jar javalin-3.12.0.jar slf4j-api-1.7
+ .36.jar spring-aspects-5.3.16.jar spring-boot-starter-data-jpa-2.6.4.ja
+ r lombok-1.18.22.jar selenium-edge-driver-3.141.59.jar spring-boot-star
+ ter-aop-2.6.4.jar jsr305-1.3.9.jar spring-data-commons-2.6.2.jar kotlin
+ -stdlib-jdk8-1.6.10.jar jakarta.activation-1.2.2.jar selenium-chrome-dr
+ iver-3.141.59.jar okhttp-3.14.9.jar hibernate-commons-annotations-5.1.2
+ .Final.jar websocket-servlet-9.4.45.v20220203.jar HikariCP-4.0.3.jar hi
+ bernate-core-5.6.5.Final.jar spring-jdbc-5.3.16.jar jetty-server-9.4.45
+ .v20220203.jar spring-orm-5.3.16.jar animal-sniffer-annotations-1.14.ja
+ r jetty-util-9.4.45.v20220203.jar gson-2.8.9.jar okio-1.14.0.jar log4j-
+ api-2.17.1.jar jetty-webapp-9.4.45.v20220203.jar spring-jcl-5.3.16.jar 
+ byte-buddy-1.11.22.jar selenium-safari-driver-3.141.59.jar websocket-ap
+ i-9.4.45.v20220203.jar metrics-jmx-4.2.8.jar jakarta.xml.bind-api-2.3.3
+ .jar guava-25.0-jre.jar selenium-remote-driver-3.141.59.jar spring-data
+ -jpa-2.6.2.jar jetty-security-9.4.45.v20220203.jar jaxb-runtime-2.3.6.j
+ ar jetty-xml-9.4.45.v20220203.jar jetty-client-9.4.45.v20220203.jar kot
+ lin-stdlib-common-1.6.10.jar jakarta.persistence-api-2.2.3.jar websocke
+ t-common-9.4.45.v20220203.jar antlr-2.7.7.jar checker-compat-qual-2.0.0
+ .jar kotlin-stdlib-1.6.10.jar snakeyaml-1.29.jar annotations-13.0.jar j
+ etty-servlet-9.4.45.v20220203.jar metrics-core-4.2.8.jar spring-core-5.
+ 3.16.jar selenium-java-3.141.59.jar logback-core-1.2.10.jar jakarta.act
+ ivation-api-1.2.2.jar validation-api-2.0.1.Final.jar spring-context-5.3
+ .16.jar javax.servlet-api-4.0.1.jar jetty-util-ajax-9.4.45.v20220203.ja
+ r websocket-client-9.4.45.v20220203.jar selenium-firefox-driver-3.141.5
+ 9.jar selenium-support-3.141.59.jar jakarta.annotation-api-1.3.5.jar co
+ mmons-exec-1.3.jar classmate-1.5.1.jar error_prone_annotations-2.1.3.ja
+ r websocket-server-9.4.45.v20220203.jar spring-boot-starter-telegram-0.
+ 23.jar spring-expression-5.3.16.jar spring-boot-2.6.4.jar selenium-oper
+ a-driver-3.141.59.jar spring-aop-5.3.16.jar jetty-io-9.4.45.v20220203.j
+ ar jandex-2.4.2.Final.jar istack-commons-runtime-3.0.12.jar selenium-ap
+ i-3.141.59.jar txw2-2.3.6.jar aspectjweaver-1.9.7.jar jetty-http-9.4.45
+ .v20220203.jar spring-boot-starter-logging-2.6.4.jar
+
