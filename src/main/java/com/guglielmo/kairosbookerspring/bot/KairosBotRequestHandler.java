@@ -176,6 +176,23 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     }
 
     /**
+     * Method to remove one user
+     *
+     * @param chat The rapresentation of the chat with the user
+     * @return The data of the user
+     */
+    @MessageRequest("/logout")
+    public String logout(Chat chat) {
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (!optionalUser.isPresent())
+            return "Utente non loggato";
+        else {
+            userRepository.delete(optionalUser.get());
+            return "Credenziali eliminate";
+        }
+    }
+
+    /**
      * Method that given the lesson title books a lesson
      *
      * @param message Lesson to book
