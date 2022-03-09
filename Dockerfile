@@ -1,3 +1,8 @@
+FROM maven:3.6.3-openjdk-17-slim as maven_builder
+WORKDIR /app
+ADD . .
+RUN mvn package -Dmaven.test.skip=true
+
 FROM selenium/standalone-chrome
-COPY target/kairos-booker-spring-1.0.jar kairos-booker-spring-1.0.jar
+COPY --from=maven_builder /app/target/kairos-booker-spring-1.0.jar kairos-booker-spring-1.0.jar
 ENTRYPOINT ["java","-jar","/kairos-booker-spring-1.0.jar"]
