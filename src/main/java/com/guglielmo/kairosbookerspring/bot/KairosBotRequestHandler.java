@@ -65,6 +65,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     @MessageRequest("/start")
     public String welcomeUser(Chat chat) {
         logMessage("/start",chat.id());
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (optionalUser.isPresent())
+            return "Bentornato su KairosBot!";
         final User user = userRepository.findByChadId(chat.id())
                 .orElse(User.builder()
                         .chadId(chat.id())
@@ -73,7 +76,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                         .adding_password(false)
                         .build());
         userRepository.save(user);
-        return "Benvenuto su KairosBot, il bot telegram per prenotare il tuo posto in ateneo!";
+        return "Benvenuto su KairosBot, il bot telegram per prenotare il tuo posto in ateneo!\n\n" +
+                "Per inizizare utilizza i comandi:\n" +
+                "- /matricola per inserire la tua matricola;\n " +
+                "- /password per inserire la tua password;\n" +
+                "Una volta effettuato il login utilizza il comando /prenota per prenotare il tuo posto a lezione.";
     }
 
     /**
@@ -140,12 +147,30 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
+        updateLessons(courses, user);
         final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
                 .parseMode(ParseMode.HTML)
                 .disableWebPagePreview(true)
                 .disableNotification(true)
                 .replyMarkup(lessonsMenu);
         return request;
+    }
+
+    /**
+     * Method to display a menu with the lessons to book
+     * and set the properties to start automatic booking
+     *
+     * @param chat The representation of the chat with the user
+     * @return The lessons menu
+     */
+    @MessageRequest("/auto_prenota")
+    public BaseRequest startAutoBooking(Chat chat) {
+        final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
+        if (!optionalUser.isPresent())
+            return new SendMessage(chat.id(), "Utente non registrato!\n" +
+                    "Per favore reinizializza il bot con il comando /start");
+        optionalUser.get().setAuto_booking(true);
+        return getCurses(chat);
     }
 
     /**
@@ -242,6 +267,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Password cifrata e salvata con successo");
         }
 
+        // Start autoBooking procedure
+        else if (user.isAuto_booking()) {
+            // TODO - Create a autoBooking method that periodically book the selected courses
+            return null;
+        }
+
         // Choosing and book lesson
         else {
             if (isLessonWrongFormat(message)) {
@@ -250,6 +281,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             final List<Lesson> courses = booker.book(user.getMatricola(), user.getPassword(), message);
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
             courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
+            updateLessons(courses, user);
             final SendMessage request = new SendMessage(user.getChadId(), "Lezione prenotata")
                     .parseMode(ParseMode.HTML)
                     .disableWebPagePreview(true)
@@ -281,5 +313,10 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return false;
         }
         return matricola.length() == 7;
+    }
+
+    private void updateLessons(List<Lesson> lessons, User user) {
+        user.setLessons(lessons);
+        userRepository.save(user);
     }
 }
