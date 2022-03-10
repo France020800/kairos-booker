@@ -3,6 +3,7 @@ package com.guglielmo.kairosbookerspring.bot;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,5 +32,9 @@ public class KairosBotMessanger {
                 .peek(System.out::println)
                 .map(User::getChadId)
                 .forEach(e -> bot.execute(new SendMessage(e, message)));
+    }
+
+    public void sendMessageTo(Chat chat, String message) {
+        bot.execute(new SendMessage(chat.id(), message));
     }
 }
