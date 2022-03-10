@@ -282,6 +282,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             if (isLessonWrongFormat(message)) {
                 return new SendMessage(chat.id(), "Comando non disponibile");
             }
+            messanger.sendMessageTo(chat.id(), "Elaborazione...");
             final List<Lesson> courses = booker.book(user.getMatricola(), user.getPassword(), message);
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
             courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
