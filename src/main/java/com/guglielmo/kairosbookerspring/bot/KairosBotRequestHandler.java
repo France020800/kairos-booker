@@ -8,6 +8,8 @@ import com.guglielmo.kairosbookerspring.Booker;
 import com.guglielmo.kairosbookerspring.Lesson;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistory;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistoryRepository;
+import com.guglielmo.kairosbookerspring.db.lessonToBook.LessonToBook;
+import com.guglielmo.kairosbookerspring.db.lessonToBook.LessonToBookRepository;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.Callback;
@@ -35,6 +37,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
     private final UserRepository userRepository;
     private final ChatHistoryRepository chatHistoryRepository;
+    private final LessonToBookRepository lessonToBookRepository;
     private final KairosBotMessanger messanger;
 
 
@@ -49,11 +52,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @param userRepository Repository to store user credentials
      */
     @Autowired
-    public KairosBotRequestHandler(UserRepository userRepository, ChatHistoryRepository chatHistoryRepository) {
+    public KairosBotRequestHandler(UserRepository userRepository, ChatHistoryRepository chatHistoryRepository, LessonToBookRepository lessonToBookRepository) {
         this.userRepository = userRepository;
         this.booker = new Booker();
         this.chatHistoryRepository = chatHistoryRepository;
         messanger = new KairosBotMessanger(userRepository);
+        this.lessonToBookRepository = lessonToBookRepository;
     }
 
     @Override
@@ -77,8 +81,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 .orElse(User.builder()
                         .chadId(chat.id())
                         .username(chat.username())
-                        .adding_matricola(false)
-                        .adding_password(false)
+                        .addingMatricola(false)
+                        .addingPassword(false)
+                        .addingAutoBooking(false)
                         .build());
         userRepository.save(user);
         return "Benvenuto su KairosBot, il bot telegram per prenotare il tuo posto in ateneo!\n\n" +
@@ -101,9 +106,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
         final User user = optionalUser.get();
-        if (user.isAdding_password())
+        if (user.isAddingPassword())
             return "Sono in attesa di una matricola, non puoi usare questo comando adesso!";
-        user.setAdding_matricola(true);
+        user.setAddingMatricola(true);
         userRepository.save(user);
         return "Inserisci adesso la tua matricola";
     }
@@ -117,13 +122,13 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     public String setPassword(Chat chat) {
         logMessage("/password",chat.id());
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-        if (!optionalUser.isPresent())
+        if (optionalUser.isEmpty())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
         final User user = optionalUser.get();
-        if (user.isAdding_matricola())
+        if (user.isAddingMatricola())
             return "Sono in attesa di una matricola, non puoi usare questo comando adesso!";
-        user.setAdding_password(true);
+        user.setAddingPassword(true);
         userRepository.save(user);
         return "Inserisci adesso la tua password";
     }
@@ -138,11 +143,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     public BaseRequest getCurses(Chat chat) {
         logMessage("/prenota",chat.id());
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-        if (!optionalUser.isPresent())
+        if (optionalUser.isEmpty())
             return new SendMessage(chat.id(), "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start");
         final User user = optionalUser.get();
-        if (user.isAdding_matricola() || user.isAdding_password())
+        if (user.isAddingMatricola() || user.isAddingPassword())
             return new SendMessage(chat.id(), "Sono in attesa di una matricola o password.\n" +
                     "Non puoi usare un comando adesso!");
         if (user.getPassword() == null || user.getMatricola() == null)
@@ -170,12 +175,32 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("/auto_prenota")
     public BaseRequest startAutoBooking(Chat chat) {
+        log.info("/auto_prenota", chat.id());
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
         if (!optionalUser.isPresent())
             return new SendMessage(chat.id(), "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start");
-        optionalUser.get().setAuto_booking(true);
-        return getCurses(chat);
+        final User user = optionalUser.get();
+        if (user.isAddingMatricola() || user.isAddingPassword())
+            return new SendMessage(chat.id(), "Sono in attesa di una matricola o password.\n" +
+                    "Non puoi usare un comando adesso!");
+        if (user.getPassword() == null || user.getMatricola() == null)
+            return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
+                    "Inserire /matricola e /password");
+        user.setAddingAutoBooking(true);
+        userRepository.save(user);
+        messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
+        final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
+        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+        courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
+        final SendMessage request = new SendMessage(user.getChadId(),
+                "Seleziona i corsi da prenotare automaticamente.\n"
+                        + "Quando hai finito digita 'FINE' per arrestare il processo di selezione e confermare le tue scelte.")
+                .parseMode(ParseMode.HTML)
+                .disableWebPagePreview(true)
+                .disableNotification(true)
+                .replyMarkup(lessonsMenu);
+        return request;
     }
 
     /**
@@ -251,10 +276,10 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final User user = optionalUser.get();
 
         // Adding matricola
-        if (user.isAdding_matricola()) {
+        if (user.isAddingMatricola()) {
             if (isMatricolaValid(message)) {
                 user.setMatricola(message);
-                user.setAdding_matricola(false);
+                user.setAddingMatricola(false);
                 userRepository.save(user);
                 log.info("Utente salvato {}", user);
                 return new SendMessage(chat.id(), "Matricola " + message + " salvata");
@@ -264,18 +289,39 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
 
         // Adding password
-        else if (user.isAdding_password()) {
+        else if (user.isAddingPassword()) {
 //          user.setPassword(passwordEncoder.encode(password));
             user.setPassword(message);
-            user.setAdding_password(false);
+            user.setAddingPassword(false);
             userRepository.save(user);
             return new SendMessage(chat.id(), "Password cifrata e salvata con successo");
         }
 
         // Start autoBooking procedure
-        else if (user.isAuto_booking()) {
+        else if (user.isAddingAutoBooking()) {
             // TODO - Create a autoBooking method that periodically book the selected courses
-            return null;
+            if (message.equals("FINE")) {
+                user.setAddingAutoBooking(false);
+                user.setAutoBooking(true);
+                userRepository.save(user);
+                return new SendMessage(chat.id(), "Procedura di auto prenotazione attivata!");
+            }
+            messanger.sendMessageTo(chat.id(), "Caricamento in corso...");
+            final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
+            if (isLessonWrongFormat(message))
+                return new SendMessage(chat.id(), "Comando non disponibile");
+            Lesson lesson = courses.stream()
+                    .filter(e -> (e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]"))
+                            .equals(message))
+                    .findAny().get();
+            LessonToBook lessonToBook = LessonToBook
+                    .builder()
+                    .courseName(lesson.getCourseName())
+                    .chatId(chat.id())
+                    .build();
+            lessonToBookRepository.save(lessonToBook);
+            return new SendMessage(chat.id(), "Corso " + lesson.getCourseName() + " aggiunto correttamente!\n" +
+                    "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
         }
 
         // Choosing and book lesson
