@@ -1,4 +1,4 @@
-FROM maven:3.6.3-openjdk-17-slim as maven_builder
+FROM maven:3.6.3-openjdk-11-slim as maven_builder
 WORKDIR /app
 ADD . .
 RUN mvn package -Dmaven.test.skip=true
