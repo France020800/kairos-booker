@@ -38,9 +38,9 @@ public class User {
     @Column(name = "adding_password")
     private boolean adding_password;
 
-    @Column(name="lessons")
-    private List<Lesson> lessons;
+    @Column(name = "lessons")
+    private String lessons;
 
-    @Column(name="auto_booking")
+    @Column(name = "auto_booking")
     private boolean auto_booking;
 }
