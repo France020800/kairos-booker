@@ -33,6 +33,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
     private final UserRepository userRepository;
     private final ChatHistoryRepository chatHistoryRepository;
+    private final KairosBotMessanger messanger;
 
 
     private Booker booker;
@@ -50,6 +51,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         this.userRepository = userRepository;
         this.booker = new Booker();
         this.chatHistoryRepository = chatHistoryRepository;
+        messanger = new KairosBotMessanger(userRepository);
     }
 
     @Override
@@ -133,7 +135,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     public BaseRequest getCurses(Chat chat) {
         logMessage("/prenota",chat.id());
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-
         if (!optionalUser.isPresent())
             return new SendMessage(chat.id(), "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start");
@@ -144,6 +145,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         if (user.getPassword() == null || user.getMatricola() == null)
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
+        messanger.sendMessageTo(chat, "Ricerca delle lezioni in corso...");
         final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
