@@ -10,6 +10,7 @@ import com.guglielmo.kairosbookerspring.db.chat.ChatHistory;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistoryRepository;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
+import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.request.*;
 import com.pengrad.telegrambot.request.BaseRequest;
@@ -67,6 +68,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     @MessageRequest("/start")
     public String welcomeUser(Chat chat) {
         logMessage("/start",chat.id());
+        log.info(chat.id().toString());
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isPresent())
             return "Bentornato su KairosBot!";
@@ -145,7 +147,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         if (user.getPassword() == null || user.getMatricola() == null)
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
-        messanger.sendMessageTo(chat, "Ricerca delle lezioni in corso...");
+        messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
         final List<Lesson> courses = booker.getCourses(user.getMatricola(), user.getPassword());
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
