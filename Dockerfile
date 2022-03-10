@@ -4,7 +4,7 @@ ADD . .
 RUN mvn package -Dmaven.test.skip=true
 
 FROM seleniarm/standalone-chromium
-RUN sudo apt update
-RUN sudo apt install -y default-jre
+#RUN sudo apt update
+#RUN sudo apt install -y default-jre
 COPY --from=maven_builder /app/target/kairos-booker-spring-1.0.jar kairos-booker-spring-1.0.jar
 ENTRYPOINT ["java","-jar","/kairos-booker-spring-1.0.jar"]
