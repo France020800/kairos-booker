@@ -18,6 +18,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.sql.Timestamp;
 import java.util.Date;
@@ -310,7 +311,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     boolean isLessonWrongFormat(String lesson) {
         return !Pattern.matches("([A-Z]* )*- .*", lesson);
     }
-
 
     private boolean isMatricolaValid(String matricola) {
         try {
