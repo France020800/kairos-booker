@@ -30,8 +30,8 @@ public class Booker {
 
 
         //Click conditions buttons
-        String privacySliderSelector = "#main-content > div.container > div:nth-child(2) > div.col-lg-6 > div > div:nth-child(5) > div.col-xs-3 > label > span";
-        String rulesSliderSelector = "#main-content > div.container > div:nth-child(2) > div.col-lg-6 > div > div:nth-child(6) > div.col-xs-3 > label > span";
+        String privacySliderSelector = "#main-content > div.main-content-body > div.container > div:nth-child(2) > div.col-lg-6 > div > div:nth-child(5) > div.col-xs-3 > label > span";
+        String rulesSliderSelector = "#main-content > div.main-content-body > div.container > div:nth-child(2) > div.col-lg-6 > div > div:nth-child(6) > div.col-xs-3 > label > span";
         wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(privacySliderSelector))).click();
         wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(rulesSliderSelector))).click();
 
@@ -47,16 +47,17 @@ public class Booker {
 
         //Login button
         wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button"))).click();
-        wait.until(ExpectedConditions.titleContains("Agenda Web"));
+        wait.until(ExpectedConditions.titleContains("Prenota il tuo posto"));
         driver.get(kairosBookingPage);
 
         final WebElement bookingsDiv = driver.findElement(By.cssSelector("#prenotazioni_container"));
 
-        final List<WebElement> bookingsList = bookingsDiv.findElements(By.id("box_"));
+        final List<WebElement> bookingsList = bookingsDiv.findElements(By.className("col-md-6"));
         return bookingsList;
     }
 
     public List<Lesson> getCourses(String username, String passsword) {
+        System.setProperty("webdriver.chrome.driver", "C:\\Users\\franc\\Downloads\\chromedriver.exe");
         driver = new ChromeDriver();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         final List<WebElement> bookingsList = loginAndGetBookings(username, passsword);
@@ -85,6 +86,7 @@ public class Booker {
 
 
     public List<Lesson> book(String username, String password, String lesson) {
+        System.setProperty("webdriver.chrome.driver", "C:\\Users\\franc\\Downloads\\chromedriver.exe");
         driver = new ChromeDriver();
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
 

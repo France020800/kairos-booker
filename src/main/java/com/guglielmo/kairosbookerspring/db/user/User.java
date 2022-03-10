@@ -1,8 +1,11 @@
 package com.guglielmo.kairosbookerspring.db.user;
 
+import com.guglielmo.kairosbookerspring.Lesson;
 import lombok.*;
+import org.openqa.selenium.WebElement;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -34,4 +37,10 @@ public class User {
 
     @Column(name = "adding_password")
     private boolean adding_password;
+
+    @Column(name = "lessons")
+    private String lessons;
+
+    @Column(name = "auto_booking")
+    private boolean auto_booking;
 }
