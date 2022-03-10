@@ -5,6 +5,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -20,6 +21,13 @@ public class Booker {
 
     private WebDriver driver;
     private WebDriverWait wait;
+    private ChromeOptions chromeOptions;
+
+    public Booker(){
+        this.chromeOptions=new ChromeOptions();
+        this.chromeOptions.addArguments("--headless");
+    }
+
 
     private List<WebElement> loginAndGetBookings(String username, String passsword) {
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
@@ -57,8 +65,7 @@ public class Booker {
     }
 
     public List<Lesson> getCourses(String username, String passsword) {
-//        System.setProperty("webdriver.chrome.driver", "C:\\Users\\franc\\Downloads\\chromedriver.exe");
-        driver = new ChromeDriver();
+        driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         final List<WebElement> bookingsList = loginAndGetBookings(username, passsword);
 
@@ -86,8 +93,7 @@ public class Booker {
 
 
     public List<Lesson> book(String username, String password, String lesson) {
-//        System.setProperty("webdriver.chrome.driver", "C:\\Users\\franc\\Downloads\\chromedriver.exe");
-        driver = new ChromeDriver();
+        driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
 
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
