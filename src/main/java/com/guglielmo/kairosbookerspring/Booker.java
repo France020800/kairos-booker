@@ -27,8 +27,6 @@ public class Booker {
     public Booker(){
         this.chromeOptions=new ChromeOptions();
         this.chromeOptions.addArguments("--headless");
-        this.driver=new ChromeDriver(chromeOptions);
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
     }
 
 
@@ -68,6 +66,8 @@ public class Booker {
     }
 
     public List<Lesson> getCourses(String username, String password) {
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
         final List<Lesson> lessonsList = new LinkedList<>();
@@ -92,6 +92,9 @@ public class Booker {
 
 
     public List<Lesson> book(String username, String password, String lesson) {
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
         final List<Lesson> lessonsList = new LinkedList<>();
 
@@ -148,6 +151,8 @@ public class Booker {
     }
 
     public List<String> getCoursesName(String username, String password) {
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
         final List<String> coursesName = new LinkedList<>();
