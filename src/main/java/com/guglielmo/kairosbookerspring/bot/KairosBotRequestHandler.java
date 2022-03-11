@@ -12,7 +12,6 @@ import com.guglielmo.kairosbookerspring.db.lessonToBook.LessonToBook;
 import com.guglielmo.kairosbookerspring.db.lessonToBook.LessonToBookRepository;
 import com.guglielmo.kairosbookerspring.db.user.User;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
-import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.request.*;
 import com.pengrad.telegrambot.request.BaseRequest;
@@ -20,12 +19,14 @@ import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 @BotController
@@ -213,7 +214,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     public String getUserData(Chat chat) {
         logMessage("/dati", chat.id());
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-        if (!optionalUser.isPresent())
+        if (optionalUser.isEmpty())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
         final User user = optionalUser.get();
@@ -223,22 +224,26 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "QUESTE INFORMAZIONI SONO VISIBILI SOLO A TE";
     }
 
-    @MessageRequest("/test")
-    public BaseRequest test(Chat chat) {
+    /**
+     * Method to remove one user
+     *
+     * @param chat The rapresentation of the chat with the user
+     * @return The data of the user
+     */
+    @MessageRequest("/arresta")
+    public String autoPrenotaStopped(Chat chat) {
         final Optional<User> optionalUser = userRepository.findByChadId(chat.id());
-        if (optionalUser.isPresent()) {
-            final User user = optionalUser.get();
-            final InlineKeyboardMarkup inlineButtons = new InlineKeyboardMarkup();
-            inlineButtons.addRow(new InlineKeyboardButton("Test"));
-            inlineButtons.addRow(new InlineKeyboardButton("Test 2"));
-            final SendMessage request = new SendMessage(user.getChadId(), "Scegli un corso")
-                    .parseMode(ParseMode.HTML)
-                    .disableWebPagePreview(true)
-                    .disableNotification(true)
-                    .replyMarkup(inlineButtons);
-            return request;
+        if (optionalUser.isEmpty())
+            return "Utente non registrato!\n" +
+                    "Per favore reinizializza il bot con il comando /start";
+        final User user = optionalUser.get();
+        if (user.isAutoBooking()) {
+            user.setAutoBooking(false);
+            userRepository.save(user);
+            return "Sistema di prenotazione automatica arrestato";
+        } else {
+            return "Sistema di prenotazione automatica non attivo";
         }
-        return null;
     }
 
     /**
@@ -299,7 +304,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
         // Start autoBooking procedure
         else if (user.isAddingAutoBooking()) {
-            // TODO - Create a autoBooking method that periodically book the selected courses
             if (message.equals("FINE")) {
                 user.setAddingAutoBooking(false);
                 user.setAutoBooking(true);
@@ -367,10 +371,16 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return matricola.length() == 7;
     }
 
-    /*
-    private void updateLessons(String lessons, User user) {
-        user.setLessons(lessons);
-        userRepository.save(user);
+    @Async
+    @Scheduled(fixedDelay = 3600000)
+    private void autoBooking() {
+        AtomicInteger numberOfBookings = new AtomicInteger();
+        userRepository.findAll().forEach(u -> {
+            if (u.isAutoBooking()) {
+                List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(u.getChadId());
+                lessonsToBook.forEach(l -> numberOfBookings.set(booker.autoBook(u.getMatricola(), u.getPassword(), l.getCourseName())));
+                messanger.sendMessageTo(u.getChadId(), "Ho prenotato " + numberOfBookings + " lezioni!");
+            }
+        });
     }
-     */
 }

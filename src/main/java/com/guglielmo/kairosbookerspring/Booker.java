@@ -130,6 +130,27 @@ public class Booker {
         return lessonsList;
     }
 
+    public int autoBook(String username, String password, String lessonToBook) {
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+
+        int numberOfBookings = 0;
+        final List<WebElement> bookingsList = loginAndGetBookings(username, password);
+        for (WebElement booking : bookingsList) {
+            final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
+            for (WebElement courseName :  coursesNameList) {
+                boolean notBooked = bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty();
+                if (courseName.equals(lessonToBook) && notBooked) {
+                    WebElement lesson = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
+                    lesson.click();
+                    numberOfBookings++;
+                }
+            }
+        }
+        return numberOfBookings;
+    }
+
     private Lesson createLesson(WebElement bookingDate, List<WebElement> coursesNameList, List<WebElement> bookingsStatusList, WebElement courseName) {
         return Lesson.builder()
                 .courseName(courseName.getText())

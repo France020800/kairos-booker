@@ -23,7 +23,7 @@ public class KairosBotMessanger {
     @Autowired
     public KairosBotMessanger(UserRepository userRepository){
         this.userRepository=userRepository;
-        bot=new TelegramBot("5166797150:AAGM8i6FYR1-t0jji9eT9GzKvNaeRYAXuRs");
+        bot=new TelegramBot("5244556196:AAGhj7N-qcZBjR1_B9rmsaAgIn1rwxlSeYE");
     }
 
 
