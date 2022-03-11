@@ -41,6 +41,9 @@ public class User {
     @Column(name = "adding_auto_booking")
     private boolean addingAutoBooking;
 
+    @Column(name = "removing_auto_booking")
+    private boolean removingAutoBooking;
+
     @Column(name = "lessons")
     private String lessons;
 
