@@ -1,16 +1,18 @@
 version: '3.7'
 services:
-  postgres:
-    image: postgres
+  db:
+    image: mysql/mysql-server
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      MYSQL_DATABASE: 'bot_db'
+      MYSQL_USER: 'spring'
+      MYSQL_PASSWORD: 'spring-password'
+      MYSQL_ROOT_PASSWORD: 'root-password'
     ports:
-      - '5432:5432'
+      - '5432:3306'
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+      - ./mysql-data:/var/lib/mysql
   kairos-bot:
     image: hirotaka00/kairos-bot:latest
     depends_on:
-      - postgres
+      - db
