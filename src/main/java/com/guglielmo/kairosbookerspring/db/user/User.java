@@ -33,14 +33,20 @@ public class User {
     private Long chadId;
 
     @Column(name = "adding_matricola")
-    private boolean adding_matricola;
+    private boolean addingMatricola;
 
     @Column(name = "adding_password")
-    private boolean adding_password;
+    private boolean addingPassword;
+
+    @Column(name = "adding_auto_booking")
+    private boolean addingAutoBooking;
+
+    @Column(name = "removing_auto_booking")
+    private boolean removingAutoBooking;
 
     @Column(name = "lessons")
     private String lessons;
 
     @Column(name = "auto_booking")
-    private boolean auto_booking;
+    private boolean autoBooking;
 }
