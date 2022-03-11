@@ -10,6 +10,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,10 +65,10 @@ public class Booker {
         return bookingsList;
     }
 
-    public List<Lesson> getCourses(String username, String passsword) {
+    public List<Lesson> getCourses(String username, String password) {
         driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
-        final List<WebElement> bookingsList = loginAndGetBookings(username, passsword);
+        final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
         final List<Lesson> lessonsList = new LinkedList<>();
 
@@ -75,9 +76,7 @@ public class Booker {
             final WebElement bookingDate = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-header > span.box-header-big"));
             final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
             final WebElement bookingInfo = booking.findElement(By.xpath("//div[2]/div/div[2]"));
-//          final WebElement courseName = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
             final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
-//          final WebElement bookingRoom = booking.findElement(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > b"));
 
             for (WebElement courseName : coursesNameList) {
                 final Lesson lesson = createLesson(bookingDate, coursesNameList, bookingsStatusList, courseName);
@@ -128,6 +127,42 @@ public class Booker {
 
         driver.close();
         return lessonsList;
+    }
+
+    public int autoBook(String username, String password, List<String> lessonsToBook) {
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+
+        int numberOfBookings = 0;
+        final List<WebElement> bookingsList = loginAndGetBookings(username, password);
+        for (WebElement booking : bookingsList) {
+            final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
+            for (WebElement courseName :  coursesNameList) {
+                boolean isNotBooked = bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty();
+                if (lessonsToBook.contains(courseName) && isNotBooked) {
+                    WebElement lesson = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
+                    lesson.click();
+                    numberOfBookings++;
+                }
+            }
+        }
+        return numberOfBookings;
+    }
+
+    public List<String> getCoursesName(String username, String password) {
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        final List<WebElement> bookingsList = loginAndGetBookings(username, password);
+
+        final List<String> coursesName = new LinkedList<>();
+        for (WebElement booking : bookingsList) {
+            final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
+            for (WebElement courseName : coursesNameList) {
+                coursesName.add(courseName.getText());
+            }
+        }
+        return new LinkedList<>(new LinkedHashSet<>(coursesName));
     }
 
     private Lesson createLesson(WebElement bookingDate, List<WebElement> coursesNameList, List<WebElement> bookingsStatusList, WebElement courseName) {
