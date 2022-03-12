@@ -16,6 +16,8 @@ services:
       - backend
   kairos-bot:
     image: hirotaka00/kairos-bot:latest
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:5432/bot_db?autoReconnect=true&useSSL=false
     depends_on:
       - db
     networks:
