@@ -12,7 +12,13 @@ services:
       - '5432:3306'
     volumes:
       - ./mysql-data:/var/lib/mysql
+    networks:
+      - backend
   kairos-bot:
     image: hirotaka00/kairos-bot:latest
     depends_on:
       - db
+    networks:
+      - backend
+networks:
+  backend:
