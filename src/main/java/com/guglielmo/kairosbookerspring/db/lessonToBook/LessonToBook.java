@@ -14,7 +14,11 @@ import javax.persistence.*;
 @ToString
 public class LessonToBook {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name="lesson_seq",
+            sequenceName="lesson_seq",
+            allocationSize=1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator="lesson_seq")
     private Integer id;
 
     @Column(name = "chat_id")
