@@ -1,14 +1,11 @@
 package com.guglielmo.kairosbookerspring.db.user;
 
-import com.guglielmo.kairosbookerspring.Lesson;
 import lombok.*;
-import org.openqa.selenium.WebElement;
 
 import javax.persistence.*;
-import java.util.List;
 
 @Entity
-@Table(name = "user")
+@Table(name = "kairos_user")
 @Getter
 @Setter
 @RequiredArgsConstructor
@@ -17,11 +14,11 @@ import java.util.List;
 @ToString
 public class KairosUser {
     @Id
-    @SequenceGenerator(name="user_seq",
-            sequenceName="user_seq",
-            allocationSize=1)
+    @SequenceGenerator(name = "user_seq",
+            sequenceName = "user_seq",
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE,
-            generator="user_seq")
+            generator = "user_seq")
     private Integer id;
 
     @Column(name = "matricola")
