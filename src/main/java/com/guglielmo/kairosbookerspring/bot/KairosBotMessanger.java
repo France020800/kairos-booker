@@ -1,6 +1,6 @@
 package com.guglielmo.kairosbookerspring.bot;
 
-import com.guglielmo.kairosbookerspring.db.user.User;
+import com.guglielmo.kairosbookerspring.db.user.KairosUser;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -29,7 +29,7 @@ public class KairosBotMessanger {
         userRepository.findAll()
                 .stream()
                 .peek(System.out::println)
-                .map(User::getChadId)
+                .map(KairosUser::getChadId)
                 .forEach(e -> bot.execute(new SendMessage(e, message)));
     }
 

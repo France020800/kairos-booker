@@ -1,6 +1,5 @@
 package com.guglielmo.kairosbookerspring.db.lessonToBook;
 
-import com.guglielmo.kairosbookerspring.db.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

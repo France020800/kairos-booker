@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @ToString
-public class User {
+public class KairosUser {
     @Id
     @SequenceGenerator(name="user_seq",
             sequenceName="user_seq",
