@@ -1,26 +1,22 @@
-version: '3.7'
+version: '2'
+
 services:
-  db:
-    image: mysql/mysql-server
-    restart: always
-    environment:
-      MYSQL_DATABASE: 'bot_db'
-      MYSQL_USER: 'spring'
-      MYSQL_PASSWORD: 'spring-password'
-      MYSQL_ROOT_PASSWORD: 'root-password'
-    ports:
-      - '5432:3306'
-    volumes:
-      - ./mysql-data:/var/lib/mysql
-    networks:
-      - backend
-  kairos-bot:
-    image: hirotaka00/kairos-bot:latest
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:5432/bot_db?autoReconnect=true&useSSL=false
+  app:
+    image: 'hirotaka00/kairos-bot:latest'
+    build:
+      context: .
+    container_name: app
     depends_on:
       - db
-    networks:
-      - backend
-networks:
-  backend:
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
+      - SPRING_DATASOURCE_USERNAME=compose-postgres
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  db:
+    image: 'postgres:13.1-alpine'
+    container_name: db
+    environment:
+      - POSTGRES_USER=compose-postgres
+      - POSTGRES_PASSWORD=compose-postgres
