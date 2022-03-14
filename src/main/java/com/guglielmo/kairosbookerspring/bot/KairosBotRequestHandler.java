@@ -1,11 +1,13 @@
 package com.guglielmo.kairosbookerspring.bot;
 
 import com.github.kshashov.telegram.api.TelegramMvcController;
+import com.github.kshashov.telegram.api.TelegramRequest;
 import com.github.kshashov.telegram.api.bind.annotation.BotController;
 import com.github.kshashov.telegram.api.bind.annotation.BotPathVariable;
 import com.github.kshashov.telegram.api.bind.annotation.request.MessageRequest;
 import com.guglielmo.kairosbookerspring.Booker;
 import com.guglielmo.kairosbookerspring.Lesson;
+import com.guglielmo.kairosbookerspring.bot.callbacks.PasswordCallback;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistory;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistoryRepository;
 import com.guglielmo.kairosbookerspring.db.lessonToBook.LessonToBook;
@@ -13,14 +15,14 @@ import com.guglielmo.kairosbookerspring.db.lessonToBook.LessonToBookRepository;
 import com.guglielmo.kairosbookerspring.db.user.KairosUser;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
 import com.pengrad.telegrambot.model.Chat;
-import com.pengrad.telegrambot.model.request.*;
+import com.pengrad.telegrambot.model.request.KeyboardButton;
+import com.pengrad.telegrambot.model.request.ParseMode;
+import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -76,7 +78,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("/start")
     public String welcomeUser(Chat chat) {
-        logMessage("/start",chat.id());
+        logMessage("/start", chat.id());
         log.info(chat.id().toString());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isPresent())
@@ -111,7 +113,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("/matricola")
     public String setMatricola(Chat chat) {
-        logMessage("/matricola",chat.id());
+        logMessage("/matricola", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (!optionalUser.isPresent())
             return "Utente non registrato!\n" +
@@ -130,18 +132,14 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @param chat The rapresentation of the chat with the user
      */
     @MessageRequest("/password")
-    public String setPassword(Chat chat) {
-        logMessage("/password",chat.id());
+    public String setPassword(Chat chat, TelegramRequest request) {
+        logMessage("/password", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isEmpty())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
-        final KairosUser kairosUser = optionalUser.get();
-        if (checkCommandRunning(kairosUser))
-            return "Non puoi usare questo comando adesso!";
-        kairosUser.setAddingPassword(true);
-        userRepository.save(kairosUser);
-        return "Inserisci adesso la tua password";
+        request.setCallback(new PasswordCallback(optionalUser.get(), userRepository, messanger));
+        return "Inserisci la tua password";
     }
 
     /**
@@ -152,14 +150,14 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      */
     @MessageRequest("/prenota")
     public BaseRequest getCurses(Chat chat) {
-        logMessage("/prenota",chat.id());
+        logMessage("/prenota", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isEmpty())
             return new SendMessage(chat.id(), "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start");
         final KairosUser kairosUser = optionalUser.get();
         if (checkCommandRunning(kairosUser))
-            return new SendMessage(chat.id(),"Non puoi usare un comando adesso!");
+            return new SendMessage(chat.id(), "Non puoi usare un comando adesso!");
         if (kairosUser.getPassword() == null || kairosUser.getMatricola() == null)
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
@@ -386,7 +384,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             if (message.equals("FINE")) {
                 kairosUser.setRemovingAutoBooking(false);
                 userRepository.save(kairosUser);
-                return new SendMessage(chat.id(),"Operazione completata!");
+                return new SendMessage(chat.id(), "Operazione completata!");
             }
             final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(chat.id());
             final LessonToBook lesson = lessonsToBook.stream().filter(e -> e.getCourseName().equals(message)).findFirst().get();
