@@ -92,7 +92,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "Per inizizare utilizza i comandi:\n" +
                 "- /matricola per inserire la tua matricola;\n" +
                 "- /password per inserire la tua password;\n" +
-                "Una volta effettuato il login utilizza il comando /prenota per prenotare il tuo posto a lezione.";
+                "Dopo aver eseguito il login usa /prenota per prenotare il tuo posto a lezione.\n\n" +
+                "Altri comandi utili:\n" +
+                "- /dati per visualizzare le tue informazioni;\n" +
+                "- /auto_prenota per avviare la procedura di prenotazione automatica;\n" +
+                "- /stop per arrestare la procedura di prenotazione automatica;\n" +
+                "- /logout per eliminare tutti i tuoi dati.";
     }
 
     /**
@@ -230,7 +235,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 userData += lessonToBook.getCourseName() + "\n";
             }
         }
-        return userData + "\n\nQUESTE INFORMAZIONI SONO VISIBILI SOLO A TE";
+        return userData + "\nQUESTE INFORMAZIONI SONO VISIBILI SOLO A TE";
     }
 
     /**
