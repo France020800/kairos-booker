@@ -19,6 +19,7 @@ import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.openqa.selenium.TimeoutException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -164,16 +165,20 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
         messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
-        final List<Lesson> courses = booker.getCourses(kairosUser.getMatricola(), kairosUser.getPassword());
-        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
-        //updateLessons(courses, user);
-        final SendMessage request = new SendMessage(kairosUser.getChadId(), "Scegli un corso")
-                .parseMode(ParseMode.HTML)
-                .disableWebPagePreview(true)
-                .disableNotification(true)
-                .replyMarkup(lessonsMenu);
-        return request;
+        try {
+            final List<Lesson> courses = booker.getCourses(kairosUser.getMatricola(), kairosUser.getPassword());
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
+            //updateLessons(courses, user);
+            final SendMessage request = new SendMessage(kairosUser.getChadId(), "Scegli un corso")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(lessonsMenu);
+            return request;
+        }catch (TimeoutException ex){
+            return new SendMessage(chat.id(), "Errore, probabilmente le credenziali non sono corrette");
+        }
     }
 
     /**
