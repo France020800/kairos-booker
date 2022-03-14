@@ -18,7 +18,7 @@ public class KairosBotMessanger {
 
     private TelegramBot bot;
 
-    @Value("${env:TOKEN}")
+    @Value("${bot.token}")
     private String token;
 
     @Autowired
