@@ -99,6 +99,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "Altri comandi utili:\n" +
                 "- /dati per visualizzare le tue informazioni;\n" +
                 "- /auto_prenota per avviare la procedura di prenotazione automatica;\n" +
+                "- /rimuovi_corsi per rimuovere i corsi in auto prenotazione\n" +
                 "- /stop per arrestare la procedura di prenotazione automatica;\n" +
                 "- /logout per eliminare tutti i tuoi dati.";
     }
@@ -201,6 +202,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         courses.forEach(e -> lessonsMenu.addRow(e));
+        lessonsMenu.addRow("FINE");
         final SendMessage request = new SendMessage(kairosUser.getChadId(),
                 "Seleziona i corsi da prenotare automaticamente.\n"
                         + "Quando hai finito digita 'FINE' per arrestare il processo di selezione e confermare le tue scelte.")
@@ -272,7 +274,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @param chat The rapresentation of the chat with the user
      * @return The data of the user
      */
-    @MessageRequest("/rimuovi_corso")
+    @MessageRequest("/rimuovi_corsi")
     public BaseRequest autoBookingCoursesRemove(Chat chat) {
         logMessage("/rimuovi_corso", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
@@ -293,6 +295,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         lessonsToBook.forEach(e -> courses.add(e.getCourseName()));
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         courses.forEach(e -> lessonsMenu.addRow(e));
+        lessonsMenu.addRow("FINE");
         return new SendMessage(chat.id(),
                 "Seleziona i corsi da rimuovere dalla prenotazione automatica.\n"
                         + "Quando hai finito digita 'FINE' per arrestare il processo di selezione e confermare le tue scelte.")
@@ -385,12 +388,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 userRepository.save(kairosUser);
                 return new SendMessage(chat.id(),"Operazione completata!");
             }
-            final LessonToBook lessonToBook = LessonToBook
-                    .builder()
-                    .courseName(message)
-                    .chatId(chat.id())
-                    .build();
-            lessonToBookRepository.delete(lessonToBook);
+            final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(chat.id());
+            final LessonToBook lesson = lessonsToBook.stream().filter(e -> e.getCourseName().equals(message)).findFirst().get();
+            lessonToBookRepository.delete(lesson);
             return new SendMessage(chat.id(), "Corso " + message + " rimosso correttamente!\n" +
                     "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
         }
