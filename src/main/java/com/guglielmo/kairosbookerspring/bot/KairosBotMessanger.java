@@ -2,7 +2,9 @@ package com.guglielmo.kairosbookerspring.bot;
 
 import com.guglielmo.kairosbookerspring.db.user.KairosUser;
 import com.guglielmo.kairosbookerspring.db.user.UserRepository;
+import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.SendResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -36,4 +38,10 @@ public class KairosBotMessanger {
     public void sendMessageTo(Long chatId, String message) {
         final SendResponse response = bot.execute(new SendMessage(chatId, message));
     }
+
+    public TelegramBot getBot(){
+        return bot;
+    }
+
+
 }

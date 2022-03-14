@@ -132,13 +132,14 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @param chat The rapresentation of the chat with the user
      */
     @MessageRequest("/password")
-    public String setPassword(Chat chat, TelegramRequest request) {
+    public String setPassword(Chat chat, BaseRequest request) {
         logMessage("/password", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isEmpty())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
-        request.setCallback(new PasswordCallback(optionalUser.get(), userRepository, messanger));
+        messanger.getBot().execute(request, new PasswordCallback(optionalUser.get(), userRepository, messanger));
+
         return "Inserisci la tua password";
     }
 
