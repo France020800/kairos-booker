@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.sql.Timestamp;
@@ -31,6 +33,7 @@ import java.util.regex.Pattern;
 
 @BotController
 @Slf4j
+@EnableScheduling
 /**
  * This class rapresent the bot that handles user's command sent through telegram
  */
@@ -439,8 +442,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return kairosUser.isRemovingAutoBooking() || kairosUser.isAddingAutoBooking() || kairosUser.isAddingMatricola() || kairosUser.isAddingPassword();
     }
 
-    @Async
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 3600000)
     private void autoBooking() {
         userRepository.findAll().forEach(u -> {
             if (u.isAutoBooking()) {
