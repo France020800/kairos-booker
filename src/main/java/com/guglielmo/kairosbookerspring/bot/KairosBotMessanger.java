@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 @Component
 @Slf4j
 public class KairosBotMessanger {
@@ -24,6 +26,10 @@ public class KairosBotMessanger {
     @Autowired
     public KairosBotMessanger(UserRepository userRepository){
         this.userRepository=userRepository;
+    }
+
+    @PostConstruct
+    public void init(){
         bot=new TelegramBot(botToken);
     }
 
