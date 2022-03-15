@@ -442,13 +442,14 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return kairosUser.isRemovingAutoBooking() || kairosUser.isAddingAutoBooking() || kairosUser.isAddingMatricola() || kairosUser.isAddingPassword();
     }
 
-    @Scheduled(fixedDelay = 3600000)
+    @Scheduled(fixedDelay = 360000git checkout main0)
     private void autoBooking() {
+        log.info("Started auto booking");
         userRepository.findAll().forEach(u -> {
             if (u.isAutoBooking()) {
                 final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(u.getChadId());
                 final List<String> lessonsName = new LinkedList<>();
-                lessonsToBook.forEach(e -> lessonsName.add(e.getCourseName()));
+                lessonsToBook.stream().map(LessonToBook::getCourseName).forEach(lessonsName::add);
                 messanger.sendMessageTo(u.getChadId(), "Ho prenotato " + booker.autoBook(u.getMatricola(), u.getPassword(), lessonsName) + " lezioni!");
             }
         });
