@@ -16,15 +16,15 @@ public class KairosBotMessanger {
 
     private UserRepository userRepository;
 
-    private TelegramBot bot;
-
     @Value("${bot.token}")
-    private String token;
+    private String botToken;
+
+    private TelegramBot bot;
 
     @Autowired
     public KairosBotMessanger(UserRepository userRepository){
         this.userRepository=userRepository;
-        bot=new TelegramBot(token);
+        bot=new TelegramBot(botToken);
     }
 
 
