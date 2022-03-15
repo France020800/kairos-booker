@@ -164,16 +164,20 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
         messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
-        final List<Lesson> courses = booker.getCourses(kairosUser.getMatricola(), kairosUser.getPassword());
-        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
-        //updateLessons(courses, user);
-        final SendMessage request = new SendMessage(kairosUser.getChadId(), "Scegli un corso")
-                .parseMode(ParseMode.HTML)
-                .disableWebPagePreview(true)
-                .disableNotification(true)
-                .replyMarkup(lessonsMenu);
-        return request;
+        try {
+            final List<Lesson> courses = booker.getCourses(kairosUser.getMatricola(), kairosUser.getPassword());
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
+            //updateLessons(courses, user);
+            final SendMessage request = new SendMessage(kairosUser.getChadId(), "Scegli un corso")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(lessonsMenu);
+            return request;
+        } catch (Exception e) {
+            return loginError(chat.id());
+        }
     }
 
     /**
@@ -196,21 +200,25 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         if (kairosUser.getPassword() == null || kairosUser.getMatricola() == null)
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
-        kairosUser.setAddingAutoBooking(true);
-        userRepository.save(kairosUser);
-        messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
-        final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
-        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        courses.forEach(e -> lessonsMenu.addRow(e));
-        lessonsMenu.addRow("FINE");
-        final SendMessage request = new SendMessage(kairosUser.getChadId(),
-                "Seleziona i corsi da prenotare automaticamente.\n"
-                        + "Quando hai finito digita 'FINE' per arrestare il processo di selezione e confermare le tue scelte.")
-                .parseMode(ParseMode.HTML)
-                .disableWebPagePreview(true)
-                .disableNotification(true)
-                .replyMarkup(lessonsMenu);
-        return request;
+        try {
+            kairosUser.setAddingAutoBooking(true);
+            userRepository.save(kairosUser);
+            messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
+            final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+            courses.forEach(e -> lessonsMenu.addRow(e));
+            lessonsMenu.addRow("FINE");
+            final SendMessage request = new SendMessage(kairosUser.getChadId(),
+                    "Seleziona i corsi da prenotare automaticamente.\n"
+                            + "Quando hai finito digita 'FINE' per arrestare il processo di selezione e confermare le tue scelte.")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(lessonsMenu);
+            return request;
+        } catch (Exception e) {
+            return loginError(chat.id());
+        }
     }
 
     /**
@@ -367,6 +375,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
     }
 
+    private BaseRequest loginError(Long chatId) {
+        return new SendMessage(chatId, "Ops... Qualcosa è andato storto\n" +
+                "Controlla le tue credenziali e riprova!");
+    }
+
     private BaseRequest addMatricola(String message, Chat chat, KairosUser kairosUser) {
         if (isMatricolaValid(message)) {
             kairosUser.setMatricola(message);
@@ -420,18 +433,21 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         if (isLessonWrongFormat(message)) {
             return new SendMessage(chat.id(), "Comando non disponibile");
         }
-        messanger.sendMessageTo(chat.id(), "Elaborazione...");
-        final List<Lesson> courses = booker.book(kairosUser.getMatricola(), kairosUser.getPassword(), message);
-        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
-        //updateLessons(courses., user);
-        final Lesson lesson = courses.stream().filter(e -> (e.getCourseName() + " - " + e.getDate() + " " + (!e.isBooked() ? "[🟢]" : "[🔴]")).equals(message)).findFirst().get();
-        final SendMessage request = new SendMessage(kairosUser.getChadId(), lesson.isBooked() ? "Lezione prenotata" : "Prenotazione annullata")
-                .parseMode(ParseMode.HTML)
-                .disableWebPagePreview(true)
-                .disableNotification(true)
-                .replyMarkup(lessonsMenu);
-        return request;
+        try {
+            messanger.sendMessageTo(chat.id(), "Elaborazione...");
+            final List<Lesson> courses = booker.book(kairosUser.getMatricola(), kairosUser.getPassword(), message);
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
+            final Lesson lesson = courses.stream().filter(e -> (e.getCourseName() + " - " + e.getDate() + " " + (!e.isBooked() ? "[🟢]" : "[🔴]")).equals(message)).findFirst().get();
+            final SendMessage request = new SendMessage(kairosUser.getChadId(), lesson.isBooked() ? "Lezione prenotata" : "Prenotazione annullata")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(lessonsMenu);
+            return request;
+        } catch (Exception e) {
+            return loginError(chat.id());
+        }
     }
 
     private String logMessage(String message, Long chatId) {
