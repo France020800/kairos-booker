@@ -164,16 +164,20 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
         messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
-        final List<Lesson> courses = booker.getCourses(kairosUser.getMatricola(), kairosUser.getPassword());
-        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
-        //updateLessons(courses, user);
-        final SendMessage request = new SendMessage(kairosUser.getChadId(), "Scegli un corso")
-                .parseMode(ParseMode.HTML)
-                .disableWebPagePreview(true)
-                .disableNotification(true)
-                .replyMarkup(lessonsMenu);
-        return request;
+        try {
+            final List<Lesson> courses = booker.getCourses(kairosUser.getMatricola(), kairosUser.getPassword());
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
+            //updateLessons(courses, user);
+            final SendMessage request = new SendMessage(kairosUser.getChadId(), "Scegli un corso")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(lessonsMenu);
+            return request;
+        } catch (Exception e) {
+            return loginError(chat.id());
+        }
     }
 
     /**
@@ -196,21 +200,25 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         if (kairosUser.getPassword() == null || kairosUser.getMatricola() == null)
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
-        kairosUser.setAddingAutoBooking(true);
-        userRepository.save(kairosUser);
-        messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
-        final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
-        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        courses.forEach(e -> lessonsMenu.addRow(e));
-        lessonsMenu.addRow("FINE");
-        final SendMessage request = new SendMessage(kairosUser.getChadId(),
-                "Seleziona i corsi da prenotare automaticamente.\n"
-                        + "Quando hai finito digita 'FINE' per arrestare il processo di selezione e confermare le tue scelte.")
-                .parseMode(ParseMode.HTML)
-                .disableWebPagePreview(true)
-                .disableNotification(true)
-                .replyMarkup(lessonsMenu);
-        return request;
+        try {
+            kairosUser.setAddingAutoBooking(true);
+            userRepository.save(kairosUser);
+            messanger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
+            final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
+            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+            courses.forEach(e -> lessonsMenu.addRow(e));
+            lessonsMenu.addRow("FINE");
+            final SendMessage request = new SendMessage(kairosUser.getChadId(),
+                    "Seleziona i corsi da prenotare automaticamente.\n"
+                            + "Quando hai finito digita 'FINE' per arrestare il processo di selezione e confermare le tue scelte.")
+                    .parseMode(ParseMode.HTML)
+                    .disableWebPagePreview(true)
+                    .disableNotification(true)
+                    .replyMarkup(lessonsMenu);
+            return request;
+        } catch (Exception e) {
+            return loginError(chat.id());
+        }
     }
 
     /**
@@ -343,68 +351,93 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
         // Adding matricola
         if (kairosUser.isAddingMatricola()) {
-            if (isMatricolaValid(message)) {
-                kairosUser.setMatricola(message);
-                kairosUser.setAddingMatricola(false);
-                userRepository.save(kairosUser);
-                log.info("Utente salvato {}", kairosUser);
-                return new SendMessage(chat.id(), "Matricola " + message + " salvata");
-            } else {
-                return new SendMessage(chat.id(), "Matricola non valida");
-            }
+            return addMatricola(message, chat, kairosUser);
         }
 
         // Adding password
         else if (kairosUser.isAddingPassword()) {
-//          user.setPassword(passwordEncoder.encode(password));
-            kairosUser.setPassword(message);
-            kairosUser.setAddingPassword(false);
-            userRepository.save(kairosUser);
-            return new SendMessage(chat.id(), "Password cifrata e salvata con successo");
+            return addPassword(message, chat, kairosUser);
         }
 
-        // Start autoBooking procedure
+        // Setting autoBooking procedure
         else if (kairosUser.isAddingAutoBooking()) {
-            if (message.equals("FINE")) {
-                kairosUser.setAddingAutoBooking(false);
-                kairosUser.setAutoBooking(true);
-                userRepository.save(kairosUser);
-                return new SendMessage(chat.id(), "Procedura di auto prenotazione attivata!");
-            }
-            LessonToBook lessonToBook = LessonToBook
-                    .builder()
-                    .courseName(message)
-                    .chatId(chat.id())
-                    .build();
-            lessonToBookRepository.save(lessonToBook);
-            return new SendMessage(chat.id(), "Corso " + message + " aggiunto correttamente!\n" +
-                    "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
+            return setAutoBookingProcedure(message, chat, kairosUser);
         }
 
         // Removing courses from auto booking
         else if (kairosUser.isRemovingAutoBooking()) {
-            if (message.equals("FINE")) {
-                kairosUser.setRemovingAutoBooking(false);
-                userRepository.save(kairosUser);
-                return new SendMessage(chat.id(), "Operazione completata!");
-            }
-            final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(chat.id());
-            final LessonToBook lesson = lessonsToBook.stream().filter(e -> e.getCourseName().equals(message)).findFirst().get();
-            lessonToBookRepository.delete(lesson);
-            return new SendMessage(chat.id(), "Corso " + message + " rimosso correttamente!\n" +
-                    "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
+            return removeAutoBookingCourses(message, chat, kairosUser);
         }
 
         // Choosing and book lesson
         else {
-            if (isLessonWrongFormat(message)) {
-                return new SendMessage(chat.id(), "Comando non disponibile");
-            }
+            return choosingAndBookLesson(message, chat, kairosUser);
+        }
+    }
+
+    private BaseRequest loginError(Long chatId) {
+        return new SendMessage(chatId, "Ops... Qualcosa è andato storto\n" +
+                "Controlla le tue credenziali e riprova!");
+    }
+
+    private BaseRequest addMatricola(String message, Chat chat, KairosUser kairosUser) {
+        if (isMatricolaValid(message)) {
+            kairosUser.setMatricola(message);
+            kairosUser.setAddingMatricola(false);
+            userRepository.save(kairosUser);
+            log.info("Utente salvato {}", kairosUser);
+            return new SendMessage(chat.id(), "Matricola " + message + " salvata");
+        } else {
+            return new SendMessage(chat.id(), "Matricola non valida");
+        }
+    }
+
+    private BaseRequest addPassword(String message, Chat chat, KairosUser kairosUser) {
+        kairosUser.setPassword(message);
+        kairosUser.setAddingPassword(false);
+        userRepository.save(kairosUser);
+        return new SendMessage(chat.id(), "Password cifrata e salvata con successo");
+    }
+
+    private BaseRequest setAutoBookingProcedure(String message, Chat chat, KairosUser kairosUser) {
+        if (message.equals("FINE")) {
+            kairosUser.setAddingAutoBooking(false);
+            kairosUser.setAutoBooking(true);
+            userRepository.save(kairosUser);
+            return new SendMessage(chat.id(), "Procedura di auto prenotazione attivata!");
+        }
+        LessonToBook lessonToBook = LessonToBook
+                .builder()
+                .courseName(message)
+                .chatId(chat.id())
+                .build();
+        lessonToBookRepository.save(lessonToBook);
+        return new SendMessage(chat.id(), "Corso " + message + " aggiunto correttamente!\n" +
+                "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
+    }
+
+    private BaseRequest removeAutoBookingCourses(String message, Chat chat, KairosUser kairosUser) {
+        if (message.equals("FINE")) {
+            kairosUser.setRemovingAutoBooking(false);
+            userRepository.save(kairosUser);
+            return new SendMessage(chat.id(), "Operazione completata!");
+        }
+        final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(chat.id());
+        final LessonToBook lesson = lessonsToBook.stream().filter(e -> e.getCourseName().equals(message)).findFirst().get();
+        lessonToBookRepository.delete(lesson);
+        return new SendMessage(chat.id(), "Corso " + message + " rimosso correttamente!\n" +
+                "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
+    }
+
+    private BaseRequest choosingAndBookLesson(String message, Chat chat, KairosUser kairosUser) {
+        if (isLessonWrongFormat(message)) {
+            return new SendMessage(chat.id(), "Comando non disponibile");
+        }
+        try {
             messanger.sendMessageTo(chat.id(), "Elaborazione...");
             final List<Lesson> courses = booker.book(kairosUser.getMatricola(), kairosUser.getPassword(), message);
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
             courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
-            //updateLessons(courses., user);
             final Lesson lesson = courses.stream().filter(e -> (e.getCourseName() + " - " + e.getDate() + " " + (!e.isBooked() ? "[🟢]" : "[🔴]")).equals(message)).findFirst().get();
             final SendMessage request = new SendMessage(kairosUser.getChadId(), lesson.isBooked() ? "Lezione prenotata" : "Prenotazione annullata")
                     .parseMode(ParseMode.HTML)
@@ -412,6 +445,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     .disableNotification(true)
                     .replyMarkup(lessonsMenu);
             return request;
+        } catch (Exception e) {
+            return loginError(chat.id());
         }
     }
 
@@ -442,7 +477,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return kairosUser.isRemovingAutoBooking() || kairosUser.isAddingAutoBooking() || kairosUser.isAddingMatricola() || kairosUser.isAddingPassword();
     }
 
-    @Scheduled(fixedDelay = 360000)
+    @Scheduled(fixedDelay = 3600000)
     private void autoBooking() {
         log.info("Started auto booking");
         userRepository.findAll().forEach(u -> {
@@ -450,7 +485,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(u.getChadId());
                 final List<String> lessonsName = new LinkedList<>();
                 lessonsToBook.stream().map(LessonToBook::getCourseName).forEach(lessonsName::add);
-                messanger.sendMessageTo(u.getChadId(), "Ho prenotato " + booker.autoBook(u.getMatricola(), u.getPassword(), lessonsName) + " lezioni!");
+                final int lessonsBooked = booker.autoBook(u.getMatricola(), u.getPassword(), lessonsName);
+                if (lessonsBooked > 0)
+                   messanger.sendMessageTo(u.getChadId(), "Ho prenotato " + lessonsBooked + " lezioni!");
             }
         });
     }
