@@ -56,11 +56,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @param userRepository Repository to store user credentials
      */
     @Autowired
-    public KairosBotRequestHandler(UserRepository userRepository, ChatHistoryRepository chatHistoryRepository, LessonToBookRepository lessonToBookRepository) {
+    public KairosBotRequestHandler(UserRepository userRepository, ChatHistoryRepository chatHistoryRepository, LessonToBookRepository lessonToBookRepository, KairosBotMessanger kairosBotMessanger) {
         this.userRepository = userRepository;
         this.booker = new Booker();
         this.chatHistoryRepository = chatHistoryRepository;
-        messanger = new KairosBotMessanger(userRepository);
+        messanger = kairosBotMessanger;
         this.lessonToBookRepository = lessonToBookRepository;
     }
 

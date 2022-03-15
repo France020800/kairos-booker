@@ -18,21 +18,13 @@ public class KairosBotMessanger {
 
     private UserRepository userRepository;
 
-    @Value("${bot.token}")
-    private String botToken;
-
     private TelegramBot bot;
 
     @Autowired
-    public KairosBotMessanger(UserRepository userRepository){
+    public KairosBotMessanger(UserRepository userRepository, @Value("${bot.token}") String botToken){
         this.userRepository=userRepository;
+        this.bot=new TelegramBot(botToken);
     }
-
-    @PostConstruct
-    public void init(){
-        bot=new TelegramBot(botToken);
-    }
-
 
     public void sendMessageToAllUsers(String message) {
         userRepository.findAll()
