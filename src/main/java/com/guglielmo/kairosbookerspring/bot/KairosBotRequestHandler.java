@@ -442,7 +442,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return kairosUser.isRemovingAutoBooking() || kairosUser.isAddingAutoBooking() || kairosUser.isAddingMatricola() || kairosUser.isAddingPassword();
     }
 
-    @Scheduled(fixedDelay = 360000git checkout main0)
+    @Scheduled(fixedDelay = 360000)
     private void autoBooking() {
         log.info("Started auto booking");
         userRepository.findAll().forEach(u -> {
