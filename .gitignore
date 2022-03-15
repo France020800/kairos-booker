@@ -36,3 +36,4 @@ build/
 
 postgres-data
 mysql-data
+src/main/resources/application-dev.properties
