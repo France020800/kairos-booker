@@ -53,6 +53,11 @@ public class Booker {
 
     @NotNull
     Cookie getSessionCookie(String username, String passsword) {
+        final Set<Cookie> cookies = login(username, passsword);
+        return cookies.stream().filter(e -> e.getName().equals("PHPSESSID")).findFirst().get();
+    }
+
+    private Set<Cookie> login(String username, String passsword) {
         WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
@@ -80,7 +85,7 @@ public class Booker {
         wait.until(ExpectedConditions.titleContains("Prenota il tuo posto"));
         final Set<Cookie> cookies = driver.manage().getCookies();
         driver.close();
-        return cookies.stream().filter(e -> e.getName().equals("PHPSESSID")).findFirst().get();
+        return cookies;
     }
 
     public List<Lesson> getCourses(String username, String password) {
