@@ -12,10 +12,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 /**
@@ -33,8 +30,8 @@ public class Booker {
 
 
     List<WebElement> loginAndGetBookings(String username, String passsword) {
-        final Set<Cookie> browserCoockies = getCookies(username, passsword);
-        WebDriver driver=initBrowser(browserCoockies);
+//        getSessionCookie(username,passsword);
+        WebDriver driver = initBrowser(new Cookie("PHPSESSID", "gere13urslboqkfn6r4ju6o984"));
 
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
         driver.get(kairosBookingPage);
@@ -45,17 +42,17 @@ public class Booker {
         return bookingsList;
     }
 
-    private WebDriver initBrowser(Set<Cookie> browserCoockies) {
+    private WebDriver initBrowser(Cookie sessionCookie) {
         WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         driver.get("https://kairos.unifi.it/agendaweb/");
         driver.manage().deleteAllCookies();
-        browserCoockies.forEach(driver.manage()::addCookie);
+        driver.manage().addCookie(sessionCookie);
         return driver;
     }
 
     @NotNull
-    Set<Cookie> getCookies(String username, String passsword) {
+    Cookie getSessionCookie(String username, String passsword) {
         WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
@@ -83,7 +80,7 @@ public class Booker {
         wait.until(ExpectedConditions.titleContains("Prenota il tuo posto"));
         final Set<Cookie> cookies = driver.manage().getCookies();
         driver.close();
-        return cookies;
+        return cookies.stream().filter(e -> e.getName().equals("PHPSESSID")).findFirst().get();
     }
 
     public List<Lesson> getCourses(String username, String password) {
