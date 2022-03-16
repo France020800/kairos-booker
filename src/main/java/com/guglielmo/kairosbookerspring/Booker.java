@@ -12,7 +12,10 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 /**
@@ -28,20 +31,6 @@ public class Booker {
         this.chromeOptions.addArguments("--headless");
     }
 
-
-    List<WebElement> loginAndGetBookings(String username, String passsword) {
-//        getSessionCookie(username,passsword);
-        WebDriver driver = initBrowser(new Cookie("PHPSESSID", "gere13urslboqkfn6r4ju6o984"));
-
-        String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
-        driver.get(kairosBookingPage);
-
-        final WebElement bookingsDiv = driver.findElement(By.cssSelector("#prenotazioni_container"));
-
-        final List<WebElement> bookingsList = bookingsDiv.findElements(By.className("col-md-6"));
-        return bookingsList;
-    }
-
     private WebDriver initBrowser(Cookie sessionCookie) {
         WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
@@ -49,12 +38,6 @@ public class Booker {
         driver.manage().deleteAllCookies();
         driver.manage().addCookie(sessionCookie);
         return driver;
-    }
-
-    @NotNull
-    Cookie getSessionCookie(String username, String passsword) {
-        final Set<Cookie> cookies = login(username, passsword);
-        return cookies.stream().filter(e -> e.getName().equals("PHPSESSID")).findFirst().get();
     }
 
     private Set<Cookie> login(String username, String passsword) {
@@ -88,6 +71,26 @@ public class Booker {
         return cookies;
     }
 
+    @NotNull
+    Cookie getSessionCookie(String username, String passsword) {
+        final Set<Cookie> cookies = login(username, passsword);
+        return cookies.stream().filter(e -> e.getName().equals("PHPSESSID")).findFirst().get();
+    }
+
+    List<WebElement> loginAndGetBookings(String username, String passsword) {
+//        getSessionCookie(username,passsword);
+        WebDriver driver = initBrowser(new Cookie("PHPSESSID", "gere13urslboqkfn6r4ju6o984"));
+
+        String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
+        driver.get(kairosBookingPage);
+
+        final WebElement bookingsDiv = driver.findElement(By.cssSelector("#prenotazioni_container"));
+
+        final List<WebElement> bookingsList = bookingsDiv.findElements(By.className("col-md-6"));
+        driver.close();
+        return bookingsList;
+    }
+
     public List<Lesson> getCourses(String username, String password) {
         WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
@@ -112,7 +115,6 @@ public class Booker {
         driver.close();
         return lessonsList;
     }
-
 
     public List<Lesson> book(String username, String password, String lesson) {
         WebDriver driver = new ChromeDriver(chromeOptions);
