@@ -23,7 +23,6 @@ import java.util.Set;
  */
 public class Booker {
 
-    private WebDriver driver;
     private WebDriverWait wait;
     private ChromeOptions chromeOptions;
 
@@ -34,13 +33,8 @@ public class Booker {
 
 
     List<WebElement> loginAndGetBookings(String username, String passsword) {
-        final Set<Cookie> browserCoockies = login(username, passsword);
-
-        driver = new ChromeDriver(chromeOptions);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
-        driver.get("https://kairos.unifi.it/agendaweb/");
-        driver.manage().deleteAllCookies();
-        browserCoockies.forEach(driver.manage()::addCookie);
+        final Set<Cookie> browserCoockies = getCookies(username, passsword);
+        WebDriver driver=initBrowser(browserCoockies);
 
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
         driver.get(kairosBookingPage);
@@ -51,9 +45,18 @@ public class Booker {
         return bookingsList;
     }
 
+    private WebDriver initBrowser(Set<Cookie> browserCoockies) {
+        WebDriver driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        driver.get("https://kairos.unifi.it/agendaweb/");
+        driver.manage().deleteAllCookies();
+        browserCoockies.forEach(driver.manage()::addCookie);
+        return driver;
+    }
+
     @NotNull
-    Set<Cookie> login(String username, String passsword) {
-        driver = new ChromeDriver(chromeOptions);
+    Set<Cookie> getCookies(String username, String passsword) {
+        WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
 
@@ -84,7 +87,7 @@ public class Booker {
     }
 
     public List<Lesson> getCourses(String username, String password) {
-        driver = new ChromeDriver(chromeOptions);
+        WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
@@ -110,7 +113,7 @@ public class Booker {
 
 
     public List<Lesson> book(String username, String password, String lesson) {
-        driver = new ChromeDriver(chromeOptions);
+        WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
 
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
@@ -148,7 +151,7 @@ public class Booker {
     }
 
     public int autoBook(String username, String password, List<String> lessonsToBook) {
-        driver = new ChromeDriver(chromeOptions);
+        WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
 
         int numberOfBookings = 0;
@@ -175,7 +178,7 @@ public class Booker {
     }
 
     public List<String> getCoursesName(String username, String password) {
-        driver = new ChromeDriver(chromeOptions);
+        WebDriver driver = new ChromeDriver(chromeOptions);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
