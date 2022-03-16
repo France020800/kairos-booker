@@ -1,7 +1,9 @@
 package com.guglielmo.kairosbookerspring;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,6 +15,7 @@ import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 /**
@@ -24,19 +27,37 @@ public class Booker {
     private WebDriverWait wait;
     private ChromeOptions chromeOptions;
 
-    public Booker(){
-        this.chromeOptions=new ChromeOptions();
+    public Booker() {
+        this.chromeOptions = new ChromeOptions();
         this.chromeOptions.addArguments("--headless");
     }
 
 
-    private List<WebElement> loginAndGetBookings(String username, String passsword) {
-        String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
-        String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
+    List<WebElement> loginAndGetBookings(String username, String passsword) {
+        final Set<Cookie> browserCoockies = login(username, passsword);
 
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        driver.get("https://kairos.unifi.it/agendaweb/");
+        driver.manage().deleteAllCookies();
+        browserCoockies.forEach(driver.manage()::addCookie);
+
+        String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
+        driver.get(kairosBookingPage);
+
+        final WebElement bookingsDiv = driver.findElement(By.cssSelector("#prenotazioni_container"));
+
+        final List<WebElement> bookingsList = bookingsDiv.findElements(By.className("col-md-6"));
+        return bookingsList;
+    }
+
+    @NotNull
+    Set<Cookie> login(String username, String passsword) {
+        driver = new ChromeDriver(chromeOptions);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
 
         driver.get(kairosFormPage);
-
 
         //Click conditions buttons
         String privacySliderSelector = "#main-content > div.main-content-body > div.container > div:nth-child(2) > div.col-lg-6 > div > div:nth-child(5) > div.col-xs-3 > label > span";
@@ -57,12 +78,9 @@ public class Booker {
         //Login button
         wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button"))).click();
         wait.until(ExpectedConditions.titleContains("Prenota il tuo posto"));
-        driver.get(kairosBookingPage);
-
-        final WebElement bookingsDiv = driver.findElement(By.cssSelector("#prenotazioni_container"));
-
-        final List<WebElement> bookingsList = bookingsDiv.findElements(By.className("col-md-6"));
-        return bookingsList;
+        final Set<Cookie> cookies = driver.manage().getCookies();
+        driver.close();
+        return cookies;
     }
 
     public List<Lesson> getCourses(String username, String password) {
@@ -138,7 +156,7 @@ public class Booker {
         for (WebElement booking : bookingsList) {
             final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
             final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
-            for (WebElement courseName :  coursesNameList) {
+            for (WebElement courseName : coursesNameList) {
                 boolean isNotBooked = bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty();
                 if (lessonsToBook.contains(courseName.getText()) && isNotBooked) {
                     WebElement lesson = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
