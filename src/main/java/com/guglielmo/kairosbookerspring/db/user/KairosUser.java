@@ -33,24 +33,24 @@ public class KairosUser {
     @Column(name = "chat_id", unique = true)
     private Long chadId;
 
-    @Column(name = "adding_matricola")
+    @Column(name = "adding_matricola", nullable = false)
     private boolean addingMatricola;
 
-    @Column(name = "adding_password")
+    @Column(name = "adding_password", nullable = false)
     private boolean addingPassword;
 
-    @Column(name = "adding_auto_booking")
+    @Column(name = "adding_auto_booking", nullable = false)
     private boolean addingAutoBooking;
 
-    @Column(name = "removing_auto_booking")
+    @Column(name = "removing_auto_booking", nullable = false)
     private boolean removingAutoBooking;
 
     @Column(name = "lessons")
     private String lessons;
 
-    @Column(name = "auto_booking")
+    @Column(name = "auto_booking", nullable = false)
     private boolean autoBooking;
 
-    @Column(name = "writing_report")
+    @Column(name = "writing_report", nullable = false)
     private boolean writingReport;
 }
