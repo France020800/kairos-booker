@@ -472,7 +472,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             kairosUser.setAddingAutoBooking(false);
             userRepository.save(kairosUser);
             return new SendMessage(chat.id(), "Comando eseguito correttamente!\n" +
-                    "Se non già attiva utilizza il comando /start per avviare la procedura di auto prenotazione.");
+                    "Se non già attiva utilizza il comando /avvia per avviare la procedura di auto prenotazione.");
         }
         LessonToBook lessonToBook = LessonToBook
                 .builder()
