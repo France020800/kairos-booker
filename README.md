@@ -47,6 +47,12 @@ sometimes you can even forget to book a lesson.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+### Roadmap
+
+- [ ] Book study rooms
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
 ## Contributing
 
 Here is how you can contribute to the project
@@ -67,26 +73,6 @@ Here is how you can contribute to the project
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-<!-- ROADMAP -->
-
-## Roadmap
-
-- [ ] Book study rooms
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-<!-- LICENSE -->
-
-## License
-
-Distributed under the GPLv3 License. See `LICENSE.md` for more information.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- CONTACT -->
 
 ## Contact
 
