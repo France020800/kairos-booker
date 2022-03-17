@@ -189,15 +189,37 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     }
 
     /**
+     * Method to start auto booking procedure
+     *
+     * @param chat The representation of the chat with the user
+     * @return The lessons menu
+     */
+    @MessageRequest("/start")
+    public String startAutoBooking(Chat chat) {
+        final Optional<KairosUser> optionalKairosUser = userRepository.findByChadId(chat.id());
+        if (optionalKairosUser.isEmpty())
+            return "Utente non registrato!\n" +
+                    "Per favore reinizializza il bot con il comando /start";
+        final KairosUser kairosUser = optionalKairosUser.get();
+        if (checkCommandRunning(kairosUser))
+            return "Non puoi usare un comando adesso!";
+        if (kairosUser.isAutoBooking())
+            return "Procedura di auto prenotazione già attiva!";
+        kairosUser.setAutoBooking(true);
+        userRepository.save(kairosUser);
+        return "Procedura di auto prenotazione attivata!";
+    }
+
+    /**
      * Method to display a menu with the lessons to book
      * and set the properties to start automatic booking
      *
      * @param chat The representation of the chat with the user
      * @return The lessons menu
      */
-    @MessageRequest("/auto_prenota")
-    public BaseRequest startAutoBooking(Chat chat) {
-        logMessage("/auto_prenota", chat.id());
+    @MessageRequest("/scegli_corsi")
+    public BaseRequest chooseAutoBooking(Chat chat) {
+        logMessage("/scegli_corsi", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (!optionalUser.isPresent())
             return new SendMessage(chat.id(), "Utente non registrato!\n" +
@@ -447,15 +469,17 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     private BaseRequest setAutoBookingProcedure(String message, Chat chat, KairosUser kairosUser) {
         if (message.equals("FINE")) {
             kairosUser.setAddingAutoBooking(false);
-            kairosUser.setAutoBooking(true);
             userRepository.save(kairosUser);
-            return new SendMessage(chat.id(), "Procedura di auto prenotazione attivata!");
+            return new SendMessage(chat.id(), "Comando eseguito correttamente!\n" +
+                    "Se non già attiva utilizza il comando /start per avviare la procedura di auto prenotazione.");
         }
         LessonToBook lessonToBook = LessonToBook
                 .builder()
                 .courseName(message)
                 .chatId(chat.id())
                 .build();
+        if (lessonToBookRepository.findByChatId(chat.id()).contains(lessonToBook))
+            return new SendMessage(chat.id(), "Corso già aggiunto");
         lessonToBookRepository.save(lessonToBook);
         return new SendMessage(chat.id(), "Corso " + message + " aggiunto correttamente!\n" +
                 "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
