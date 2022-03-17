@@ -109,7 +109,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "- /auto_prenota per avviare la procedura di prenotazione automatica;\n" +
                 "- /rimuovi_corsi per rimuovere i corsi in auto prenotazione\n" +
                 "- /stop per arrestare la procedura di prenotazione automatica;\n" +
-                "- /logout per eliminare tutti i tuoi dati.";
+                "- /logout per eliminare tutti i tuoi dati.\n" +
+                "- /segnala per segnalare un problema agli sviluppatori.";
     }
 
     /**
@@ -231,8 +232,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
         try {
-            kairosUser.setAddingAutoBooking(true);
-            userRepository.save(kairosUser);
             messenger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
             final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
@@ -245,6 +244,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     .disableWebPagePreview(true)
                     .disableNotification(true)
                     .replyMarkup(lessonsMenu);
+            kairosUser.setAddingAutoBooking(true);
+            userRepository.save(kairosUser);
             return request;
         } catch (Exception e) {
             return loginError(chat.id());
