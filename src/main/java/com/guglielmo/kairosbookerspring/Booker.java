@@ -77,9 +77,11 @@ public class Booker {
         return cookies.stream().filter(e -> e.getName().equals("PHPSESSID")).findFirst().get();
     }
 
-    List<WebElement> loginAndGetBookings(String username, String passsword) {
-//        getSessionCookie(username,passsword);
-        WebDriver driver = initBrowser(new Cookie("PHPSESSID", "gere13urslboqkfn6r4ju6o984"));
+    List<WebElement> loginAndGetBookings(String username, String passsword, String sessionCookie) {
+        WebDriver driver = initBrowser(new Cookie("PHPSESSID", sessionCookie));
+        if (isCookieInvalid(driver)) {
+            driver = initBrowser(getSessionCookie(username, passsword));
+        }
 
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
         driver.get(kairosBookingPage);
@@ -89,6 +91,12 @@ public class Booker {
         final List<WebElement> bookingsList = bookingsDiv.findElements(By.className("col-md-6"));
         driver.close();
         return bookingsList;
+    }
+
+    private boolean isCookieInvalid(WebDriver driver) {
+        driver.get("https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione_profilo&_lang=it");
+        return driver.getTitle().contains("Login");
+
     }
 
     public List<Lesson> getCourses(String username, String password) {

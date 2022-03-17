@@ -50,4 +50,7 @@ public class KairosUser {
 
     @Column(name = "auto_booking")
     private boolean autoBooking;
+
+    @Column(name = "session_cookie")
+    private String sessionCookie;
 }
