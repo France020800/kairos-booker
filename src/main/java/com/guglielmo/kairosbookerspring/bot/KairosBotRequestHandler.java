@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @EnableScheduling
 /**
- * This class rapresent the bot that handles user's command sent through telegram
+ * This class represent the bot that handles user's command sent through telegram
  */
 public class KairosBotRequestHandler implements TelegramMvcController {
 
@@ -79,7 +79,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to welcome for new user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      */
     @MessageRequest("/start")
     public String welcomeUser(Chat chat) {
@@ -116,7 +116,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to request the username of a user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      */
     @MessageRequest("/matricola")
     public String setMatricola(Chat chat) {
@@ -136,7 +136,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to request the password of a user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      */
     @MessageRequest("/password")
     public String setPassword(Chat chat) {
@@ -156,7 +156,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to display a menu with the lessons to book
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      * @return The lessons menu
      */
     @MessageRequest("/prenota")
@@ -255,7 +255,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to display a menu with the lessons to book
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      * @return The data of the user
      */
     @MessageRequest("/dati")
@@ -285,7 +285,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to remove one user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      * @return The data of the user
      */
     @MessageRequest("/stop")
