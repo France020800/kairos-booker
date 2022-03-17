@@ -60,7 +60,7 @@ Here is how you can contribute to the project
 1. Fork the repo
 2. Clone the repo
    ```sh
-   git clone https://github.com/your_username_/kairos-bot-spring.git
+   git clone https://github.com/your_username_/kairos-booker.git
    ```
 3. Open the project from your favourite Java IDE (Intellij raccomended)
 4. Create a new branch
