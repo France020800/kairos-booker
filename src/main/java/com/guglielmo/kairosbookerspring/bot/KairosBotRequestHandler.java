@@ -478,7 +478,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 .courseName(message)
                 .chatId(chat.id())
                 .build();
-        if (lessonToBookRepository.findByChatId(chat.id()).contains(lessonToBook))
+        final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(chat.id());
+        if (lessonsToBook.stream().anyMatch(l -> l.getCourseName().equals(message)))
             return new SendMessage(chat.id(), "Corso già aggiunto");
         lessonToBookRepository.save(lessonToBook);
         return new SendMessage(chat.id(), "Corso " + message + " aggiunto correttamente!\n" +
