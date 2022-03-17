@@ -31,7 +31,7 @@ Telegram Bot for booking "Università degli Studi di Firenze" lessons automatica
 
 ## About The Project
 
-<img src="img/screen.png" alt="Logo" width="150" height="50">
+<img src="img/screen.png" alt="bot_screenshot">
 
 This project aims to simplify the process of booking a lesson in Unifi, that is a very slow and boring process,
 sometimes you can even forget to book a lesson.
