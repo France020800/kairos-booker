@@ -194,7 +194,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @param chat The representation of the chat with the user
      * @return The lessons menu
      */
-    @MessageRequest("/start")
+    @MessageRequest("/avvia")
     public String startAutoBooking(Chat chat) {
         final Optional<KairosUser> optionalKairosUser = userRepository.findByChadId(chat.id());
         if (optionalKairosUser.isEmpty())
