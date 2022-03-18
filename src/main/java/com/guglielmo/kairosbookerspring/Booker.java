@@ -143,12 +143,12 @@ public class Booker {
                 if (lessonsToBook.contains(courseName.getText()) && isNotBooked) {
                     WebElement lesson = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
                     lesson.click();
+                    numberOfBookings++;
                     final WebElement confirmButton = wait
                             .until(ExpectedConditions
                                     .elementToBeClickable(By
                                             .cssSelector("#popup_conferma_buttons_row > button")));
                     confirmButton.click();
-                    numberOfBookings++;
                 }
             }
         }
