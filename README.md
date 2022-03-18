@@ -77,7 +77,7 @@ Here is how you can contribute to the project
 ## Contact
 
 - Bartelloni Guglielmo - bartelloni.guglielmo@gmail.com
-- Marchini Francesco - francesco.marchini@stud-unifi.it
+- Marchini Francesco - francescomarchini7@gmail.com
 
 Project
 Link: [https://github.com/guglielmobartelloni/kairos-booker](https://github.com/guglielmobartelloni/kairos-booker)
