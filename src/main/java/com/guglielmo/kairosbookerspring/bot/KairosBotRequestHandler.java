@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @EnableScheduling
 /**
- * This class rapresent the bot that handles user's command sent through telegram
+ * This class represent the bot that handles user's command sent through telegram
  */
 public class KairosBotRequestHandler implements TelegramMvcController {
 
@@ -79,7 +79,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to welcome for new user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      */
     @MessageRequest("/start")
     public String welcomeUser(Chat chat) {
@@ -109,13 +109,14 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "- /auto_prenota per avviare la procedura di prenotazione automatica;\n" +
                 "- /rimuovi_corsi per rimuovere i corsi in auto prenotazione\n" +
                 "- /stop per arrestare la procedura di prenotazione automatica;\n" +
-                "- /logout per eliminare tutti i tuoi dati.";
+                "- /logout per eliminare tutti i tuoi dati.\n" +
+                "- /segnala per segnalare un problema agli sviluppatori.";
     }
 
     /**
      * Method to request the username of a user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      */
     @MessageRequest("/matricola")
     public String setMatricola(Chat chat) {
@@ -135,7 +136,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to request the password of a user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      */
     @MessageRequest("/password")
     public String setPassword(Chat chat) {
@@ -155,7 +156,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to display a menu with the lessons to book
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      * @return The lessons menu
      */
     @MessageRequest("/prenota")
@@ -231,8 +232,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Non è stato effettuato il login.\n" +
                     "Inserire /matricola e /password");
         try {
-            kairosUser.setAddingAutoBooking(true);
-            userRepository.save(kairosUser);
             messenger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
             final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
@@ -245,6 +244,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     .disableWebPagePreview(true)
                     .disableNotification(true)
                     .replyMarkup(lessonsMenu);
+            kairosUser.setAddingAutoBooking(true);
+            userRepository.save(kairosUser);
             return request;
         } catch (Exception e) {
             return loginError(chat.id());
@@ -254,7 +255,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to display a menu with the lessons to book
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      * @return The data of the user
      */
     @MessageRequest("/dati")
@@ -284,7 +285,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     /**
      * Method to remove one user
      *
-     * @param chat The rapresentation of the chat with the user
+     * @param chat The representation of the chat with the user
      * @return The data of the user
      */
     @MessageRequest("/stop")
@@ -471,7 +472,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             kairosUser.setAddingAutoBooking(false);
             userRepository.save(kairosUser);
             return new SendMessage(chat.id(), "Comando eseguito correttamente!\n" +
-                    "Se non già attiva utilizza il comando /start per avviare la procedura di auto prenotazione.");
+                    "Se non già attiva utilizza il comando /avvia per avviare la procedura di auto prenotazione.");
         }
         LessonToBook lessonToBook = LessonToBook
                 .builder()
