@@ -3,7 +3,7 @@ WORKDIR /app
 ADD . .
 RUN mvn package -Dmaven.test.skip=true
 
-FROM selenium/standalone-chromium
+FROM selenium/standalone-chrome
 #RUN sudo apt update
 #RUN sudo apt install -y default-jre
 COPY --from=maven_builder /app/target/kairos-booker-spring-1.0.jar kairos-booker-spring-1.0.jar
