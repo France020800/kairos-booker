@@ -4,11 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -23,6 +26,9 @@ public class Booker {
     private WebDriver driver;
     private WebDriverWait wait;
     private ChromeOptions chromeOptions;
+
+    @Value("${selenium.remote.url}")
+    private String seleniumRemoteUrl;
 
     public Booker(){
         this.chromeOptions=new ChromeOptions().setHeadless(true).addArguments("--verbose");
@@ -65,8 +71,7 @@ public class Booker {
     }
 
     public List<Lesson> getCourses(String username, String password) {
-        driver = new ChromeDriver(chromeOptions);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        initBrowser();
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
         final List<Lesson> lessonsList = new LinkedList<>();
@@ -89,10 +94,18 @@ public class Booker {
         return lessonsList;
     }
 
+    private void initBrowser() {
+        try {
+            driver = new RemoteWebDriver(new URL(seleniumRemoteUrl),chromeOptions);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+    }
+
 
     public List<Lesson> book(String username, String password, String lesson) {
-        driver = new ChromeDriver(chromeOptions);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        initBrowser();
 
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
         final List<Lesson> lessonsList = new LinkedList<>();
@@ -129,8 +142,7 @@ public class Booker {
     }
 
     public int autoBook(String username, String password, List<String> lessonsToBook) {
-        driver = new ChromeDriver(chromeOptions);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        initBrowser();
 
         int numberOfBookings = 0;
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
@@ -156,8 +168,7 @@ public class Booker {
     }
 
     public List<String> getCoursesName(String username, String password) {
-        driver = new ChromeDriver(chromeOptions);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10).getSeconds());
+        initBrowser();
         final List<WebElement> bookingsList = loginAndGetBookings(username, password);
 
         final List<String> coursesName = new LinkedList<>();
