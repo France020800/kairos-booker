@@ -91,7 +91,7 @@ Distributed under the GPLv3 License. See `LICENSE.md` for more information.
 ## Contact
 
 - Bartelloni Guglielmo - bartelloni.guglielmo@gmail.com
-- Marchini Francesco - francesco.marchini@stud-unifi.it
+- Marchini Francesco - francescomarchini7@gmail.com
 
 Project
 Link: [https://github.com/guglielmobartelloni/kairos-booker](https://github.com/guglielmobartelloni/kairos-booker)
