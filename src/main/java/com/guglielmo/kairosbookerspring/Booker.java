@@ -25,7 +25,7 @@ public class Booker {
     private ChromeOptions chromeOptions;
 
     public Booker(){
-        this.chromeOptions=new ChromeOptions().setHeadless(true);
+        this.chromeOptions=new ChromeOptions().setHeadless(true).addArguments("--verbose");
     }
 
 
