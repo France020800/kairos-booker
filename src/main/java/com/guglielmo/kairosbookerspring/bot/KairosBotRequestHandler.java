@@ -185,6 +185,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     .replyMarkup(lessonsMenu);
             return request;
         } catch (Exception e) {
+            log.error(e.getMessage());
             return loginError(chat.id());
         }
     }
