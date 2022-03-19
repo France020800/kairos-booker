@@ -3,16 +3,24 @@ version: '2'
 services:
   app:
     image: 'hirotaka00/kairos-bot:latest'
-    build:
-      context: .
     container_name: app
     depends_on:
       - db
+      - browser
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
-
+      - TOKEN=${TOKEN}
+      - DEV_TOKEN=${TOKEN_DEV}
+    networks:
+      - web
+  browser:
+    image: seleniumarm/standalone-chromium:4
+    ports:
+      - '4444:4444'
+    networks:
+      - web
   db:
     image: 'postgres:13.1-alpine'
     container_name: db
@@ -23,12 +31,17 @@ services:
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres
-
   admin:
-    image: 'france020800/kairos-booker-dev:lasted'
+    image: 'france020800/kairos-booker-dev'
+    container_name: admin
     depends_on:
       - db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - TOKEN=${TOKEN_DEV}
+      - OFFICIAL_TOKEN=${TOKEN}
+      - BOT_PASSWORD=${BOT_PASSWORD}
+networks:
+  web:

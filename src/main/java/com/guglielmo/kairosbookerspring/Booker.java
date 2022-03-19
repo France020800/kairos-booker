@@ -27,8 +27,7 @@ public class Booker {
     private WebDriverWait wait;
     private ChromeOptions chromeOptions;
 
-    @Value("${selenium.remote.url}")
-    private String seleniumRemoteUrl;
+    private String seleniumRemoteUrl="http://localhost:4444/wd/hub";
 
     public Booker(){
         this.chromeOptions=new ChromeOptions().setHeadless(true).addArguments("--verbose");
@@ -96,6 +95,7 @@ public class Booker {
 
     private void initBrowser() {
         try {
+            log.info("URL: {}", seleniumRemoteUrl);
             driver = new RemoteWebDriver(new URL(seleniumRemoteUrl),chromeOptions);
         } catch (MalformedURLException e) {
             e.printStackTrace();
