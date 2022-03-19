@@ -27,7 +27,7 @@ public class Booker {
     private WebDriverWait wait;
     private ChromeOptions chromeOptions;
 
-    private String seleniumRemoteUrl="http://localhost:4444/wd/hub";
+    private String seleniumRemoteUrl="http://browser:4444/wd/hub";
 
     public Booker(){
         this.chromeOptions=new ChromeOptions().setHeadless(true).addArguments("--verbose");
