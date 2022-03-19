@@ -31,6 +31,8 @@ services:
     environment:
       - POSTGRES_USER=compose-postgres
       - POSTGRES_PASSWORD=compose-postgres
+    networks:
+      - web
   admin:
     image: 'france020800/kairos-booker-dev'
     container_name: admin
@@ -43,5 +45,7 @@ services:
       - TOKEN=${TOKEN_DEV}
       - OFFICIAL_TOKEN=${TOKEN}
       - BOT_PASSWORD=${BOT_PASSWORD}
+    networks:
+      - web
 networks:
   web:
