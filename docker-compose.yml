@@ -1,5 +1,8 @@
-version: '2'
+version: '3.8'
 
+networks:
+  web:
+    external: true
 services:
   app:
     image: 'hirotaka00/kairos-bot:latest'
@@ -21,6 +24,8 @@ services:
       - '4444:4444'
     networks:
       - web
+    privileged: true
+    shm_size: 2g
   db:
     image: 'postgres:13.1-alpine'
     container_name: db
@@ -47,5 +52,3 @@ services:
       - BOT_PASSWORD=${BOT_PASSWORD}
     networks:
       - web
-networks:
-  web:
