@@ -89,7 +89,7 @@ public class Booker {
             }
         }
 
-        driver.close();
+        driver.quit();
         return lessonsList;
     }
 
@@ -137,7 +137,7 @@ public class Booker {
             }
         }
 
-        driver.close();
+        driver.quit();
         return lessonsList;
     }
 
@@ -163,7 +163,7 @@ public class Booker {
                 }
             }
         }
-        driver.close();
+        driver.quit();
         return numberOfBookings;
     }
 
@@ -178,7 +178,7 @@ public class Booker {
                 coursesName.add(courseName.getText());
             }
         }
-        driver.close();
+        driver.quit();
         return new LinkedList<>(new LinkedHashSet<>(coursesName));
     }
 
