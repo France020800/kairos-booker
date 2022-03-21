@@ -185,8 +185,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     .replyMarkup(lessonsMenu);
             return request;
         } catch (Exception e) {
-            log.error(e.getMessage());
-            return loginError(chat.id());
+            return loginError(chat.id(), e);
         }
     }
 
@@ -249,7 +248,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             userRepository.save(kairosUser);
             return request;
         } catch (Exception e) {
-            return loginError(chat.id());
+            return loginError(chat.id(), e);
         }
     }
 
@@ -429,7 +428,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
     }
 
-    private BaseRequest loginError(Long chatId) {
+    private BaseRequest loginError(Long chatId, Exception ex) {
+        log.error(ex.getMessage());
         return new SendMessage(chatId, "Ops... Qualcosa è andato storto\n" +
                 "Controlla le tue credenziali e riprova!");
     }
@@ -442,7 +442,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
         List<DevUser> devUsers = devUserRepository.findAll();
         devUsers.stream().filter(DevUser::getIsDevUser).forEach(u -> devBot.execute(new SendMessage(u.getChatId(),
-                "Reported by user: " + chat.id() +"\n\n" + message)));
+                "Reported by user: " + chat.id() + "\n\n" + message)));
         kairosUser.setWritingReport(false);
         userRepository.save(kairosUser);
         return new SendMessage(chat.id(), "Grazie della tua segnalazione.\n" +
@@ -518,7 +518,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     .replyMarkup(lessonsMenu);
             return request;
         } catch (Exception e) {
-            return loginError(chat.id());
+            return loginError(chat.id(), e);
         }
     }
 
@@ -559,7 +559,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 final List<String> lessonsName = new LinkedList<>();
                 lessonsToBook.stream().map(LessonToBook::getCourseName).forEach(lessonsName::add);
                 lessonsBooked = booker.autoBook(u.getMatricola(), u.getPassword(), lessonsName);
-                if (lessonsBooked > 0) messenger.sendMessageTo(u.getChadId(), "Ho prenotato " + lessonsBooked + " lezioni!");
+                if (lessonsBooked > 0)
+                    messenger.sendMessageTo(u.getChadId(), "Ho prenotato " + lessonsBooked + " lezioni!");
             }
         });
     }
