@@ -8,12 +8,10 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,10 +25,10 @@ public class Booker {
     private WebDriverWait wait;
     private ChromeOptions chromeOptions;
 
-    private String seleniumRemoteUrl="http://browser:4444/wd/hub";
+    private String seleniumRemoteUrl = "http://browser:4444/wd/hub";
 
-    public Booker(){
-        this.chromeOptions=new ChromeOptions().setHeadless(true).addArguments("--verbose");
+    public Booker() {
+        this.chromeOptions = new ChromeOptions().setHeadless(true).addArguments("--verbose");
     }
 
 
@@ -96,7 +94,7 @@ public class Booker {
     private void initBrowser() {
         try {
             log.info("URL: {}", seleniumRemoteUrl);
-            driver = new RemoteWebDriver(new URL(seleniumRemoteUrl),chromeOptions);
+            driver = new RemoteWebDriver(new URL(seleniumRemoteUrl), chromeOptions);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -149,7 +147,7 @@ public class Booker {
         for (WebElement booking : bookingsList) {
             final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
             final List<WebElement> bookingsStatusList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.attendance-course-detail"));
-            for (WebElement courseName :  coursesNameList) {
+            for (WebElement courseName : coursesNameList) {
                 boolean isNotBooked = bookingsStatusList.get(coursesNameList.indexOf(courseName)).getText().isEmpty();
                 if (lessonsToBook.contains(courseName.getText()) && isNotBooked) {
                     WebElement lesson = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > a")).get(coursesNameList.indexOf(courseName));
