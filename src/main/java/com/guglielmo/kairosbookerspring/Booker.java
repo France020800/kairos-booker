@@ -179,7 +179,7 @@ public class Booker {
             }
         }
         driver.quit();
-        return new LinkedList<>(new LinkedHashSet<>(coursesName));
+        return coursesName;
     }
 
     private Lesson createLesson(WebElement bookingDate, List<WebElement> coursesNameList, List<WebElement> bookingsStatusList, WebElement courseName) {
