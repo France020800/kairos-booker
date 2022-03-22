@@ -106,10 +106,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "Dopo aver eseguito il login usa /prenota per prenotare il tuo posto a lezione.\n\n" +
                 "Altri comandi utili:\n" +
                 "- /dati per visualizzare le tue informazioni;\n" +
-                "- /auto_prenota per avviare la procedura di prenotazione automatica;\n" +
-                "- /rimuovi_corsi per rimuovere i corsi in auto prenotazione\n" +
+                "- /scegli_corsi per scegliere i corsi da mettere in auto prenotazione;\n" +
+                "- /rimuovi_corsi per rimuovere i corsi in auto prenotazione;\n" +
+                "- /avvia per avviare la procedure di auto prenotazione;\n" +
                 "- /stop per arrestare la procedura di prenotazione automatica;\n" +
-                "- /logout per eliminare tutti i tuoi dati.\n" +
+                "- /logout per eliminare tutti i tuoi dati;\n" +
                 "- /segnala per segnalare un problema agli sviluppatori.";
     }
 
@@ -360,8 +361,10 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         else {
             if (checkCommandRunning(optionalUser.get()))
                 return "Non puoi utilizzare un comando adesso!";
+            final List<LessonToBook> lessonToBookList = lessonToBookRepository.findByChatId(chat.id());
+            lessonToBookList.forEach(lessonToBookRepository::delete);
             userRepository.delete(optionalUser.get());
-            return "Credenziali eliminate";
+            return "Dati eliminati correttamente";
         }
     }
 
