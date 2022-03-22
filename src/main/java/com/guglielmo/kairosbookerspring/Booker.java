@@ -33,7 +33,7 @@ public class Booker {
     }
 
 
-    private List<WebElement> loginAndGetBookings(String username, String passsword) {
+    protected List<WebElement> loginAndGetBookings(String username, String passsword) {
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
 

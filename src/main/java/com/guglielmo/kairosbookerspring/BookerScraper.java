@@ -3,7 +3,6 @@ package com.guglielmo.kairosbookerspring;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.DomNode;
-import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
@@ -21,7 +20,7 @@ public class BookerScraper {
         options.setCssEnabled(false);
     }
 
-    private List<DomNode> loginAndGetBookings(String username, String password) throws IOException {
+    protected List<DomNode> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
 
@@ -37,24 +36,30 @@ public class BookerScraper {
 
         // Click login button
         final HtmlElement login = page.querySelector("#oauth_btn");
-        login.click();
+        HtmlPage loginPage = login.click();
 
-        final HtmlElement usernameInput = page.querySelector("#username");
-        final HtmlElement passwordInput = page.querySelector("#password");
+        final HtmlElement usernameInput = loginPage.querySelector("#username");
+        final HtmlElement passwordInput = loginPage.querySelector("#password");
 
         // Insert username e password
         usernameInput.setNodeValue(username);
         passwordInput.setNodeValue(password);
 
         // Login button
-        final HtmlElement loginButton = page.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
-        loginButton.click();
+        final HtmlElement loginButton = loginPage.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
+        final HtmlPage optionsPage = loginButton.click();
 
-        HtmlPage lessonPage = webClient.getPage(kairosBookingPage);
+        // Prenota e gestisci il tuo posto a lezione button
+        final HtmlElement bookingButton = optionsPage.querySelector("#main-content > div.main-content-body > div:nth-child(8) > div:nth-child(3) > a > div > div.colored-box-section-1 > span");
+        final HtmlPage intermediatePage = bookingButton.click();
+
+        // Nuova prenotazione button
+        final HtmlElement newBook = intermediatePage.querySelector("#menu_container > div:nth-child(1) > div > div.colored-box-section-1 > a > div");
+        final HtmlPage lessonPage = newBook.click();
 
         final HtmlElement bookingsDiv = lessonPage.querySelector("#prenotazioni_container");
 
-        final List<DomNode> bookingList = bookingsDiv.querySelectorAll("");
+        final List<DomNode> bookingList = bookingsDiv.getByXPath("//div[contains(@class, 'date')]");
 
         return bookingList;
     }
