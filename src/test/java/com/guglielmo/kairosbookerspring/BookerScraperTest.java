@@ -15,8 +15,8 @@ public class BookerScraperTest {
     public void loginAndGetBookingsTest() throws IOException, InterruptedException {
         BookerScraper booker = new BookerScraper();
         Booker bookeSelenium = new Booker();
-        List<DomNode> lessons = booker.loginAndGetBookings("7029444", "Mafaldo2000!");
-        List<WebElement> lessonsSelenium = bookeSelenium.loginAndGetBookings("7029444", "Mafaldo2000!");
+        List<DomNode> lessons = booker.loginAndGetBookings("", "");
+        List<WebElement> lessonsSelenium = bookeSelenium.loginAndGetBookings("", "");
         assertThat(lessons.size()).isEqualTo(lessonsSelenium.size());
     }
 }
