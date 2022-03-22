@@ -104,6 +104,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "- /matricola per inserire la tua matricola;\n" +
                 "- /password per inserire la tua password;\n" +
                 "Dopo aver eseguito il login usa /prenota per prenotare il tuo posto a lezione.\n\n" +
+                "Ricorda che puoi inserire dei corsi in prenotazione automatica in modo da non doverti più preoccupare di prenotare ogni giorno il tuo posto.\n" +
                 "Altri comandi utili:\n" +
                 "- /dati per visualizzare le tue informazioni;\n" +
                 "- /scegli_corsi per scegliere i corsi da mettere in auto prenotazione;\n" +
@@ -111,7 +112,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "- /avvia per avviare la procedure di auto prenotazione;\n" +
                 "- /stop per arrestare la procedura di prenotazione automatica;\n" +
                 "- /logout per eliminare tutti i tuoi dati;\n" +
-                "- /segnala per segnalare un problema agli sviluppatori.";
+                "- /segnala per segnalare un problema agli sviluppatori;\n" +
+                "- /help se ti trovi in difficoltà e non sai come funziona il bot.\n\n" +
+                "Per ulteriori informazioni e contribuzioni al progetto visita la pagina web https://github.com/guglielmobartelloni/kairos-booker.";
     }
 
     /**
@@ -380,9 +383,43 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
         final KairosUser kairosUser = optionalKairosUser.get();
+        if (checkCommandRunning(kairosUser))
+            return "Non puoi usare un comando adesso!";
         kairosUser.setWritingReport(true);
         userRepository.save(kairosUser);
         return "Inviami adesso la tua segnalazione, altrimenti digita \"ANNULLA\" per annulare";
+    }
+
+    /**
+     * Method that display for users some information on how to use the bot
+     *
+     *
+     */
+    @MessageRequest("/help")
+    public String helpMessage(Chat chat) {
+        final Optional<KairosUser> optionalKairosUser = userRepository.findByChadId(chat.id());
+        if (optionalKairosUser.isEmpty())
+            return "Utente non registrato!\n" +
+                    "Per favore reinizializza il bot con il comando /start";
+        final KairosUser kairosUser = optionalKairosUser.get();
+        if (checkCommandRunning(kairosUser))
+            return "Non puoi usare un comando adesso!";
+        return "Benvenuto su kairos-booker!\n\n" +
+                "Ricorda che con questo bot puoi dimenticarti delle prenotazioni inserendo dei corsi in prenotazione automatica!\n" +
+                "Ecco una lista di ciò che puoi fare utilizzando questo bot:\n" +
+                "- /matricola: aggiugi o modifica la tua matricola;\n" +
+                "- /password: aggiungi o modifica la tua password;\n" +
+                "- /dati: visualizza le informazioni da te inserite;\n" +
+                "- /prenota: visualizza e prenota uno o più corsi a tua scelta;\n" +
+                "- /scegli_corsi: scegli i corsi che vuoi mettere in prenotazione automatica;\n" +
+                "- /rimuovi_corsi: rimuovi i corsi che non vuoi più in prenotazione automatica;\n" +
+                "- /avvia: fai partire la procedura di prenotazione automatica, ogni ora il sistema controllerà se hai nuove lezioni prenotabili;\n" +
+                "- /stop: arresta il sistema di prenotazione automatica. NOTA BENE che i corsi da te inseriti non si elimineranno, per fare ciò usa il comando /rimuovi_corsi;\n" +
+                "- /logout: effettua il logout dal bot ed elimina tutti i tuoi dati;\n" +
+                "- /segnalazione: hai riscontrato un problema? Facci sapere che tipo di problema hai avuto inviando agli sviluppatori una segnalazione;\n" +
+                "- /help: comando che ti aiuterà nel capire il funzionamento del bot;\n" +
+                "\n" +
+                "Per ulteriori informazioni e contribuzioni al progetto visita la pagina web https://github.com/guglielmobartelloni/kairos-booker.";
     }
 
     /**
