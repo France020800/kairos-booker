@@ -4,8 +4,10 @@ package com.guglielmo.kairosbookerspring.api.response.pojo;
 import javax.annotation.Generated;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import lombok.ToString;
 
 @Generated("jsonschema2pojo")
+@ToString
 public class Prenotazioni {
 
     @SerializedName("nome")

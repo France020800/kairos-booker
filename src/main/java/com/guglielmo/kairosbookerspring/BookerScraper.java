@@ -7,11 +7,16 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.Cookie;
+import com.google.gson.Gson;
+import com.guglielmo.kairosbookerspring.api.response.pojo.LessonsResponse;
+import com.guglielmo.kairosbookerspring.api.response.pojo.Prenotazioni;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,15 +80,19 @@ public class BookerScraper {
                 .header("Sec-Fetch-Dest", "document")
                 .header("Referer", "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione_home&_lang=it")
                 .header("Accept-Language", "en-US,en;q=0.9,it;q=0.8,ja;q=0.7")
-                .header("Cookie", cookies.stream().map(e -> e.getName()+"="+e.getValue()).collect(Collectors.joining(";")))
+                .header("Cookie", cookies.stream().map(e -> e.getName() + "=" + e.getValue()).collect(Collectors.joining(";")))
                 .header("sec-gpc", "1")
                 .asString();
 
-        String jsonLine=response.getBody().lines().filter(e -> e.trim().startsWith("var lezioni_prenotabili")).collect(Collectors.joining());
-        jsonLine=jsonLine.substring(" \t\t\tvar lezioni_prenotabili = JSON.parse(".length());
-        jsonLine=jsonLine.substring(0,jsonLine.length()-4);
+        String jsonLine = response.getBody().lines().filter(e -> e.trim().startsWith("var lezioni_prenotabili")).collect(Collectors.joining());
+        jsonLine = jsonLine.substring(" \t\t\tvar lezioni_prenotabili = JSON.parse(".length());
+        jsonLine = jsonLine.substring(0, jsonLine.length() - 4);
 
-        log.info("Index Response: {}", jsonLine);
+        final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
+
+        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses).map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
+
+        log.info("Lessons: {}", allLessons);
 
 //        final List<DomNode> bookingList = bookingsDiv.querySelectorAll(".col-md-6");
 
