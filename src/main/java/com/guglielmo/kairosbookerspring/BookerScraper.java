@@ -35,9 +35,11 @@ public class BookerScraper {
 
     protected List<LessonsResponse> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
         final Set<Cookie> cookies = getLoginCookies(username, password);
-        HttpResponse<String> apiResponse = getLessonsJson(cookies);
+        HttpResponse<String> apiResponse = getKairosDataJson(cookies);
+        String responseBody = apiResponse.getBody();
 
-        String jsonLine = getJsonString(apiResponse);
+
+        String jsonLine = getJsonString(responseBody);
         final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
 
 //        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses)
@@ -48,6 +50,13 @@ public class BookerScraper {
         final List<LessonsResponse> lessonsResponseList = Arrays.stream(lessonsResponses).collect(Collectors.toList());
 
         return lessonsResponseList;
+    }
+
+    public String getCodiceFiscale(String username, String password) throws IOException {
+        final HttpResponse<String> response = getKairosDataJson(getLoginCookies(username, password));
+        String lineOfCodiceFiscale = response.getBody().lines().filter(e -> e.trim().startsWith("var qr_codes_array")).collect(Collectors.joining());
+        lineOfCodiceFiscale = lineOfCodiceFiscale.substring(lineOfCodiceFiscale.length() - 19, lineOfCodiceFiscale.length() - 3);
+        return lineOfCodiceFiscale;
     }
 
     public boolean bookLessons(String username, String password, Collection<Prenotazioni> lessonsToBook) throws IOException {
@@ -112,7 +121,7 @@ public class BookerScraper {
         return cookies;
     }
 
-    private HttpResponse<String> getLessonsJson(Set<Cookie> cookies) {
+    private HttpResponse<String> getKairosDataJson(Set<Cookie> cookies) {
         String formattedCookies = formatCookies(cookies);
         HttpResponse<String> response = Unirest.get("https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
                 .header("Connection", "keep-alive")
@@ -142,8 +151,8 @@ public class BookerScraper {
     }
 
     @NotNull
-    private String getJsonString(HttpResponse<String> response) {
-        String jsonLine = response.getBody().lines().filter(e -> e.trim().startsWith("var lezioni_prenotabili")).collect(Collectors.joining());
+    private String getJsonString(String responseBody) {
+        String jsonLine = responseBody.lines().filter(e -> e.trim().startsWith("var lezioni_prenotabili")).collect(Collectors.joining());
         jsonLine = jsonLine.substring(" \t\t\tvar lezioni_prenotabili = JSON.parse(".length());
         jsonLine = jsonLine.substring(0, jsonLine.length() - 4);
         return jsonLine;

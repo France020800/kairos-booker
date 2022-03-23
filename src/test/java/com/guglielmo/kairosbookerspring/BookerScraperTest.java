@@ -35,7 +35,17 @@ public class BookerScraperTest {
                 .filter(e -> e.getPrenotabile() && !e.getPrenotata())
                 .findFirst()
                 .orElseThrow();
-        log.info("Lezione da prenotare: {}",firstBookableLesson);
+        log.info("Lezione da prenotare: {}", firstBookableLesson);
         assertThat(bookerScraper.bookLessons(username, password, List.of(firstBookableLesson))).isTrue();
+    }
+
+    @Test
+    public void getCodiceFiscale() throws IOException {
+        String username = "7032141";
+        String password = "c1p80040";
+
+        final String codiceFiscale = bookerScraper.getCodiceFiscale(username, password);
+        assertThat(codiceFiscale).isNotNull();
+        log.info("Codice fiscale: {}", codiceFiscale);
     }
 }
