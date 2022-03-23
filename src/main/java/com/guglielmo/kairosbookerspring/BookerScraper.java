@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,9 +50,9 @@ public class BookerScraper {
         return lessonsResponseList;
     }
 
-    public boolean book(String username, String password, Prenotazioni lessonToBook) throws IOException {
+    public boolean bookLessons(String username, String password, Collection<Prenotazioni> lessonsToBook) throws IOException {
         final String formattedCookies = formatCookies(getLoginCookies(username, password));
-        String requestUrl="https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=salva_prenotazioni&codice_fiscale=BRTGLL00C26G713C&id_entries=["+lessonToBook.getEntryId()+"]";
+        String requestUrl = "https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=salva_prenotazioni&codice_fiscale=BRTGLL00C26G713C&id_entries=[" + lessonsToBook.stream().map(Prenotazioni::getEntryId).map(String::valueOf).collect(Collectors.joining(",")) + "]";
         HttpResponse<String> response = Unirest.post(requestUrl)
                 .header("Connection", "keep-alive")
                 .header("Pragma", "no-cache")
@@ -74,8 +75,8 @@ public class BookerScraper {
                 .header("sec-gpc", "1")
                 .asString();
 
-        log.info("Response: {}",response.getBody());
-        return response.getStatus()==200;
+        log.info("Response: {}", response.getBody());
+        return response.getStatus() == 200;
 
     }
 

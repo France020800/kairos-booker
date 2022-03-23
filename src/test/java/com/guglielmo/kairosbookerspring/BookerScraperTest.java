@@ -36,6 +36,6 @@ public class BookerScraperTest {
                 .findFirst()
                 .orElseThrow();
         log.info("Lezione da prenotare: {}",firstBookableLesson);
-        assertThat(bookerScraper.book(username, password, firstBookableLesson)).isTrue();
+        assertThat(bookerScraper.bookLessons(username, password, List.of(firstBookableLesson))).isTrue();
     }
 }
