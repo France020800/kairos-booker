@@ -14,7 +14,7 @@ public class BookerScraper {
     public BookerScraper() {
         this.webClient = new WebClient();
         final WebClientOptions options = webClient.getOptions();
-        options.setJavaScriptEnabled(false);
+        options.setJavaScriptEnabled(true);
         options.setCssEnabled(false);
     }
 
@@ -23,7 +23,6 @@ public class BookerScraper {
         String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
 
         final HtmlPage page = webClient.getPage(kairosFormPage);
-        System.out.println("*********************** " + page.getTitleText() + " **********************");
 
         // Click conditions buttons
         String privacySliderSelector = "#main-content > div.main-content-body > div.container > div:nth-child(2) > div.col-lg-6 > div > div:nth-child(5) > div.col-xs-3 > label > span";
@@ -36,26 +35,20 @@ public class BookerScraper {
         // Click login button
         final HtmlElement login = page.querySelector("#oauth_btn");
         HtmlPage loginPage = login.click();
-        System.out.println("**************************** " + loginPage.getTitleText() + " **************************");
 
         // Insert username e password
         final HtmlForm loginForm = loginPage.querySelector("body > div > div > div > div.column.one > form");
-        loginForm.getInputByName("j_username").type(username);
-        loginForm.getInputByName("j_password").type(password);
+        loginForm.getInputByName("j_username").setValueAttribute(username);
+        loginForm.getInputByName("j_password").setValueAttribute(password);
 
         // Login button
-        final HtmlElement loginButton = (HtmlElement) loginForm.getElementsByTagName("_eventId_proceed");
+        final HtmlElement loginButton = loginForm.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
         final HtmlPage optionsPage = loginButton.click();
         System.out.println("****************************** " + optionsPage.getTitleText() + " ******************************");
 
         // Prenota e gestisci il tuo posto a lezione button
-        final HtmlElement bookingButton = optionsPage.querySelector("#main-content > div.main-content-body > div:nth-child(8) > div:nth-child(3) > a > div > div.colored-box-section-1 > span");
-        final HtmlPage intermediatePage = bookingButton.click();
-
-
-        // Nuova prenotazione button
-        final HtmlElement newBook = intermediatePage.querySelector("#menu_container > div:nth-child(1) > div > div.colored-box-section-1 > a > div");
-        final HtmlPage lessonPage = newBook.click();
+        final HtmlElement bookingButton = optionsPage.querySelector("#menu_container > div:nth-child(1) > div > div.colored-box-section-1 > a > div");
+        final HtmlPage lessonPage = bookingButton.click();
 
         final HtmlElement bookingsDiv = lessonPage.querySelector("#prenotazioni_container");
 
