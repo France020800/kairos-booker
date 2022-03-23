@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +49,36 @@ public class BookerScraper {
         return lessonsResponseList;
     }
 
+    public boolean book(String username, String password, Prenotazioni lessonToBook) throws IOException {
+        final String formattedCookies = formatCookies(getLoginCookies(username, password));
+        String requestUrl="https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=salva_prenotazioni&codice_fiscale=BRTGLL00C26G713C&id_entries=["+lessonToBook.getEntryId()+"]";
+        HttpResponse<String> response = Unirest.post(requestUrl)
+                .header("Connection", "keep-alive")
+                .header("Pragma", "no-cache")
+                .header("Cache-Control", "no-cache")
+                .header("sec-ch-ua", "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"99\", \"Google Chrome\";v=\"99\"")
+                .header("DNT", "1")
+                .header("sec-ch-ua-mobile", "?0")
+                .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36")
+                .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                .header("Accept", "application/json, text/javascript, */*; q=0.01")
+                .header("X-Requested-With", "XMLHttpRequest")
+                .header("sec-ch-ua-platform", "\"macOS\"")
+                .header("Origin", "https://kairos.unifi.it")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-Mode", "cors")
+                .header("Sec-Fetch-Dest", "empty")
+                .header("Referer", "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
+                .header("Accept-Language", "en-US,en;q=0.9,it;q=0.8,ja;q=0.7")
+                .header("Cookie", formattedCookies)
+                .header("sec-gpc", "1")
+                .asString();
+
+        log.info("Response: {}",response.getBody());
+        return response.getStatus()==200;
+
+    }
+
     private Set<Cookie> getLoginCookies(String username, String password) throws IOException {
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
 
@@ -76,10 +105,14 @@ public class BookerScraper {
         // Login button
         final HtmlElement loginButton = loginForm.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
         loginButton.click();
-        return webClient.getCookieManager().getCookies();
+
+        final Set<Cookie> cookies = webClient.getCookieManager().getCookies();
+        webClient.getCookieManager().clearCookies();
+        return cookies;
     }
 
     private HttpResponse<String> getLessonsJson(Set<Cookie> cookies) {
+        String formattedCookies = formatCookies(cookies);
         HttpResponse<String> response = Unirest.get("https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
                 .header("Connection", "keep-alive")
                 .header("Pragma", "no-cache")
@@ -97,10 +130,14 @@ public class BookerScraper {
                 .header("Sec-Fetch-Dest", "document")
                 .header("Referer", "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione_home&_lang=it")
                 .header("Accept-Language", "en-US,en;q=0.9,it;q=0.8,ja;q=0.7")
-                .header("Cookie", cookies.stream().map(e -> e.getName() + "=" + e.getValue()).collect(Collectors.joining(";")))
+                .header("Cookie", formattedCookies)
                 .header("sec-gpc", "1")
                 .asString();
         return response;
+    }
+
+    private String formatCookies(Set<Cookie> cookies) {
+        return cookies.stream().map(e -> e.getName() + "=" + e.getValue()).collect(Collectors.joining(";"));
     }
 
     @NotNull

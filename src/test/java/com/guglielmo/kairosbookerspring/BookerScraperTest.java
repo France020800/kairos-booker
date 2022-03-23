@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,5 +21,21 @@ public class BookerScraperTest {
         final List<LessonsResponse> allUserLessons = bookerScraper
                 .loginAndGetBookings("7032141", "c1p80040");
         assertThat(allUserLessons).isNotEmpty();
+    }
+
+    @Test
+    public void book() throws IOException, InterruptedException {
+        String username = "7032141";
+        String password = "c1p80040";
+
+        final Prenotazioni firstBookableLesson = bookerScraper.loginAndGetBookings(username, password)
+                .stream()
+                .map(LessonsResponse::getPrenotazioni)
+                .flatMap(Collection::stream)
+                .filter(e -> e.getPrenotabile() && !e.getPrenotata())
+                .findFirst()
+                .orElseThrow();
+        log.info("Lezione da prenotare: {}",firstBookableLesson);
+        assertThat(bookerScraper.book(username, password, firstBookableLesson)).isTrue();
     }
 }
