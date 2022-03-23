@@ -2,11 +2,21 @@ package com.guglielmo.kairosbookerspring;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
-import com.gargoylesoftware.htmlunit.html.*;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.util.Cookie;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class BookerScraper {
 
     private final WebClient webClient;
@@ -45,18 +55,39 @@ public class BookerScraper {
         // Login button
         final HtmlElement loginButton = loginForm.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
         final HtmlPage optionsPage = loginButton.click();
-        System.out.println("****************************** " + optionsPage.getTitleText() + " ******************************");
-        webClient.getOptions().setJavaScriptEnabled(false);
 
-        // Prenota e gestisci il tuo posto a lezione button
-        final HtmlElement bookingButton = optionsPage.querySelector("#menu_container > div:nth-child(1) > div > div.colored-box-section-1 > a > div");
-        final HtmlPage lessonPage = bookingButton.click();
+        final Set<Cookie> cookies = webClient.getCookieManager().getCookies();
 
-        final HtmlElement bookingsDiv = lessonPage.querySelector("#prenotazioni_container");
+        HttpResponse<String> response = Unirest.get("https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
+                .header("Connection", "keep-alive")
+                .header("Pragma", "no-cache")
+                .header("Cache-Control", "no-cache")
+                .header("sec-ch-ua", "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"99\", \"Google Chrome\";v=\"99\"")
+                .header("sec-ch-ua-mobile", "?0")
+                .header("sec-ch-ua-platform", "\"macOS\"")
+                .header("DNT", "1")
+                .header("Upgrade-Insecure-Requests", "1")
+                .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36")
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-Mode", "navigate")
+                .header("Sec-Fetch-User", "?1")
+                .header("Sec-Fetch-Dest", "document")
+                .header("Referer", "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione_home&_lang=it")
+                .header("Accept-Language", "en-US,en;q=0.9,it;q=0.8,ja;q=0.7")
+                .header("Cookie", cookies.stream().map(e -> e.getName()+"="+e.getValue()).collect(Collectors.joining(";")))
+                .header("sec-gpc", "1")
+                .asString();
 
-        final List<DomNode> bookingList = bookingsDiv.querySelectorAll(".col-md-6");
+        String jsonLine=response.getBody().lines().filter(e -> e.trim().startsWith("var lezioni_prenotabili")).collect(Collectors.joining());
+        jsonLine=jsonLine.substring(" \t\t\tvar lezioni_prenotabili = JSON.parse(".length());
+        jsonLine=jsonLine.substring(0,jsonLine.length()-4);
 
-        return bookingList;
+        log.info("Index Response: {}", jsonLine);
+
+//        final List<DomNode> bookingList = bookingsDiv.querySelectorAll(".col-md-6");
+
+        return null;
     }
 
 }
