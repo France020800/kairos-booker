@@ -35,9 +35,9 @@ public class BookerScraper {
 
     protected List<Prenotazioni> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
         final Set<Cookie> cookies = getLoginCookies(username, password);
-        HttpResponse<String> response = makeApiCall(cookies);
+        HttpResponse<String> apiResponse = getLessonsJson(cookies);
 
-        String jsonLine = getJsonString(response);
+        String jsonLine = getJsonString(apiResponse);
         final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
 
         final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses)
@@ -78,7 +78,7 @@ public class BookerScraper {
         return webClient.getCookieManager().getCookies();
     }
 
-    private HttpResponse<String> makeApiCall(Set<Cookie> cookies) {
+    private HttpResponse<String> getLessonsJson(Set<Cookie> cookies) {
         HttpResponse<String> response = Unirest.get("https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
                 .header("Connection", "keep-alive")
                 .header("Pragma", "no-cache")
