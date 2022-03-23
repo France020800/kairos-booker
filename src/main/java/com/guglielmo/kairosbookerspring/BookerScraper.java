@@ -14,7 +14,7 @@ public class BookerScraper {
     public BookerScraper() {
         this.webClient = new WebClient();
         final WebClientOptions options = webClient.getOptions();
-        options.setJavaScriptEnabled(true);
+        options.setJavaScriptEnabled(false);
         options.setCssEnabled(false);
     }
 
@@ -34,6 +34,7 @@ public class BookerScraper {
 
         // Click login button
         final HtmlElement login = page.querySelector("#oauth_btn");
+        webClient.getOptions().setJavaScriptEnabled(true);
         HtmlPage loginPage = login.click();
 
         // Insert username e password
@@ -45,6 +46,7 @@ public class BookerScraper {
         final HtmlElement loginButton = loginForm.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
         final HtmlPage optionsPage = loginButton.click();
         System.out.println("****************************** " + optionsPage.getTitleText() + " ******************************");
+        webClient.getOptions().setJavaScriptEnabled(false);
 
         // Prenota e gestisci il tuo posto a lezione button
         final HtmlElement bookingButton = optionsPage.querySelector("#menu_container > div:nth-child(1) > div > div.colored-box-section-1 > a > div");
@@ -52,7 +54,7 @@ public class BookerScraper {
 
         final HtmlElement bookingsDiv = lessonPage.querySelector("#prenotazioni_container");
 
-        final List<DomNode> bookingList = bookingsDiv.getByXPath("//div[contains(@class, 'date')]");
+        final List<DomNode> bookingList = bookingsDiv.querySelectorAll(".col-md-6");
 
         return bookingList;
     }
