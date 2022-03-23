@@ -39,15 +39,14 @@ public class BookerScraper {
         System.out.println("**************************** " + loginPage.getTitleText() + " **************************");
 
         // Insert username e password
-        HtmlTextInput user = (HtmlTextInput) loginPage.getElementById("username");
-        HtmlTextInput pass = (HtmlTextInput) loginPage.getElementById("password");
-        user.setText(username);
-        pass.setText(password);
+        final HtmlForm loginForm = loginPage.querySelector("body > div > div > div > div.column.one > form");
+        loginForm.getInputByName("j_username").type(username);
+        loginForm.getInputByName("j_password").type(password);
 
         // Login button
-        final HtmlElement loginButton = loginPage.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5)");
+        final HtmlElement loginButton = (HtmlElement) loginForm.getElementsByTagName("_eventId_proceed");
         final HtmlPage optionsPage = loginButton.click();
-        System.out.println("********************* " + optionsPage.getTitleText() + " *********************");
+        System.out.println("****************************** " + optionsPage.getTitleText() + " ******************************");
 
         // Prenota e gestisci il tuo posto a lezione button
         final HtmlElement bookingButton = optionsPage.querySelector("#main-content > div.main-content-body > div:nth-child(8) > div:nth-child(3) > a > div > div.colored-box-section-1 > span");
