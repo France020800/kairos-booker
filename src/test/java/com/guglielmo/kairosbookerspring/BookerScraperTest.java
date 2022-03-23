@@ -1,5 +1,6 @@
 package com.guglielmo.kairosbookerspring;
 
+import com.guglielmo.kairosbookerspring.api.response.pojo.LessonsResponse;
 import com.guglielmo.kairosbookerspring.api.response.pojo.Prenotazioni;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,7 @@ public class BookerScraperTest {
 
     @Test
     public void loginAndGetBookingsTest() throws IOException, InterruptedException {
-        final List<Prenotazioni> allUserLessons = bookerScraper
+        final List<LessonsResponse> allUserLessons = bookerScraper
                 .loginAndGetBookings("7032141", "c1p80040");
         assertThat(allUserLessons).isNotEmpty();
     }

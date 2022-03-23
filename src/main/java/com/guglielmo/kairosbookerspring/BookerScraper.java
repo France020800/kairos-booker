@@ -33,20 +33,21 @@ public class BookerScraper {
         options.setCssEnabled(false);
     }
 
-    protected List<Prenotazioni> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
+    protected List<LessonsResponse> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
         final Set<Cookie> cookies = getLoginCookies(username, password);
         HttpResponse<String> apiResponse = getLessonsJson(cookies);
 
         String jsonLine = getJsonString(apiResponse);
         final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
 
-        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses)
-                .map(LessonsResponse::getPrenotazioni)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+//        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses)
+//                .map(LessonsResponse::getPrenotazioni)
+//                .flatMap(Collection::stream)
+//                .collect(Collectors.toList());
 
-        log.info("Lessons: {}", allLessons);
-        return allLessons;
+        final List<LessonsResponse> lessonsResponseList = Arrays.stream(lessonsResponses).collect(Collectors.toList());
+
+        return lessonsResponseList;
     }
 
     private Set<Cookie> getLoginCookies(String username, String password) throws IOException {
