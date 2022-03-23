@@ -13,6 +13,7 @@ import com.guglielmo.kairosbookerspring.api.response.pojo.Prenotazioni;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,9 +34,22 @@ public class BookerScraper {
         options.setCssEnabled(false);
     }
 
-    protected List<DomNode> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
+    protected List<Prenotazioni> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
+        final Set<Cookie> cookies = getLoginCookies(username, password);
+        HttpResponse<String> response = makeApiCall(cookies);
+
+        String jsonLine = getJsonString(response);
+
+        final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
+
+        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses).map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
+
+        log.info("Lessons: {}", allLessons);
+        return allLessons;
+    }
+
+    private Set<Cookie> getLoginCookies(String username, String password) throws IOException {
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
-        String kairosBookingPage = "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it";
 
         final HtmlPage page = webClient.getPage(kairosFormPage);
 
@@ -59,10 +73,11 @@ public class BookerScraper {
 
         // Login button
         final HtmlElement loginButton = loginForm.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
-        final HtmlPage optionsPage = loginButton.click();
+        loginButton.click();
+        return webClient.getCookieManager().getCookies();
+    }
 
-        final Set<Cookie> cookies = webClient.getCookieManager().getCookies();
-
+    private HttpResponse<String> makeApiCall(Set<Cookie> cookies) {
         HttpResponse<String> response = Unirest.get("https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
                 .header("Connection", "keep-alive")
                 .header("Pragma", "no-cache")
@@ -83,20 +98,15 @@ public class BookerScraper {
                 .header("Cookie", cookies.stream().map(e -> e.getName() + "=" + e.getValue()).collect(Collectors.joining(";")))
                 .header("sec-gpc", "1")
                 .asString();
+        return response;
+    }
 
+    @NotNull
+    private String getJsonString(HttpResponse<String> response) {
         String jsonLine = response.getBody().lines().filter(e -> e.trim().startsWith("var lezioni_prenotabili")).collect(Collectors.joining());
         jsonLine = jsonLine.substring(" \t\t\tvar lezioni_prenotabili = JSON.parse(".length());
         jsonLine = jsonLine.substring(0, jsonLine.length() - 4);
-
-        final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
-
-        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses).map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
-
-        log.info("Lessons: {}", allLessons);
-
-//        final List<DomNode> bookingList = bookingsDiv.querySelectorAll(".col-md-6");
-
-        return null;
+        return jsonLine;
     }
 
 }
