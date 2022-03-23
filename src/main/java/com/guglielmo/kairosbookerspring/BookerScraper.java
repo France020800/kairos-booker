@@ -2,7 +2,6 @@ package com.guglielmo.kairosbookerspring;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
-import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -39,10 +38,12 @@ public class BookerScraper {
         HttpResponse<String> response = makeApiCall(cookies);
 
         String jsonLine = getJsonString(response);
-
         final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
 
-        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses).map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
+        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses)
+                .map(LessonsResponse::getPrenotazioni)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
         log.info("Lessons: {}", allLessons);
         return allLessons;
