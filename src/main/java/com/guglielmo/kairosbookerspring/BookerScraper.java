@@ -83,6 +83,7 @@ public class BookerScraper {
                 .map(LessonsResponse::getPrenotazioni)
                 .flatMap(Collection::stream)
                 .map(Prenotazioni::getNome)
+                .distinct()
                 .collect(Collectors.toList());
     }
 
