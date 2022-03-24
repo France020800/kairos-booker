@@ -4,11 +4,8 @@ import com.github.kshashov.telegram.api.TelegramMvcController;
 import com.github.kshashov.telegram.api.bind.annotation.BotController;
 import com.github.kshashov.telegram.api.bind.annotation.BotPathVariable;
 import com.github.kshashov.telegram.api.bind.annotation.request.MessageRequest;
-import com.guglielmo.kairosbookerspring.Booker;
 import com.guglielmo.kairosbookerspring.BookerScraper;
 import com.guglielmo.kairosbookerspring.Lesson;
-import com.guglielmo.kairosbookerspring.api.response.pojo.LessonsResponse;
-import com.guglielmo.kairosbookerspring.api.response.pojo.Prenotazioni;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistory;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistoryRepository;
 import com.guglielmo.kairosbookerspring.db.devUser.DevUser;
@@ -231,7 +228,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     "Inserire /matricola e /password");
         try {
             messenger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
-            final List<String> courses = scraper.getCoursesName(kairosUser.getUsername(), kairosUser.getPassword());
+            log.info("Utente: {}",kairosUser);
+            final List<String> courses = scraper.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
             courses.forEach(lessonsMenu::addRow);
             lessonsMenu.addRow("FINE");
@@ -246,6 +244,8 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             userRepository.save(kairosUser);
             return request;
         } catch (Exception e) {
+            log.error("Eccezione: {}", e.getMessage());
+            e.printStackTrace();
             return loginError(chat.id());
         }
     }
@@ -385,8 +385,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
     /**
      * Method that display for users some information on how to use the bot
-     *
-     *
      */
     @MessageRequest("/help")
     public String helpMessage(Chat chat) {
@@ -475,7 +473,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
         List<DevUser> devUsers = devUserRepository.findAll();
         devUsers.stream().filter(DevUser::getIsDevUser).forEach(u -> devBot.execute(new SendMessage(u.getChatId(),
-                "Reported by user: " + chat.id() +"\n\n" + message)));
+                "Reported by user: " + chat.id() + "\n\n" + message)));
         kairosUser.setWritingReport(false);
         userRepository.save(kairosUser);
         return new SendMessage(chat.id(), "Grazie della tua segnalazione.\n" +
@@ -540,12 +538,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
         String fiscalCode;
         if (kairosUser.getFiscalCode() == null)
-            fiscalCode = scraper.getCodiceFiscale(kairosUser.getUsername(), kairosUser.getPassword());
+            fiscalCode = scraper.getCodiceFiscale(kairosUser.getMatricola(), kairosUser.getPassword());
         else
             fiscalCode = kairosUser.getFiscalCode();
         try {
             messenger.sendMessageTo(chat.id(), "Elaborazione...");
-            final List<Lesson> lessons = scraper.getLessons(kairosUser.getUsername(), kairosUser.getPassword())
+            final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword())
                     .stream()
                     .filter(l -> (l.getCourseName() + " - " + l.getDate() + " " + (l.isBooked() ? "[🟢]" : "[🔴]")).equals(message))
                     .collect(Collectors.toList());
@@ -553,9 +551,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 return new SendMessage(chat.id(), "Comando non riconosciuto");
             final Lesson lesson = lessons.stream().findFirst().get();
             if (lesson.isBooked())
-                scraper.cancelBooking(kairosUser.getUsername(), kairosUser.getPassword(), fiscalCode, lessons);
+                scraper.cancelBooking(kairosUser.getMatricola(), kairosUser.getPassword(), fiscalCode, lessons);
             else
-                scraper.bookLessons(kairosUser.getUsername(), kairosUser.getPassword(), fiscalCode, lessons);
+                scraper.bookLessons(kairosUser.getMatricola(), kairosUser.getPassword(), fiscalCode, lessons);
             return buttonsOfLessons(kairosUser, lesson.isBooked() ? "Prenotazione cancellata!" : "Prenotazione effettuata!");
         } catch (Exception e) {
             return loginError(chat.id());
@@ -590,7 +588,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     }
 
     private SendMessage buttonsOfLessons(KairosUser kairosUser, String message) throws IOException, InterruptedException {
-        final List<Lesson> lessons = scraper.getLessons(kairosUser.getUsername(), kairosUser.getPassword());
+        final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword());
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         lessons.forEach(l -> lessonsMenu.addRow(l.getCourseName() + " - " + l.getDate() + " " + (l.isBooked() ? "[🟢]" : "[🔴]")));
 
@@ -610,11 +608,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             if (u.isAutoBooking()) {
                 try {
                     final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getFiscalCode(), u.getPassword()) : u.getFiscalCode();
-                    final Collection<Lesson> lessons = scraper.getLessons(u.getUsername(), u.getPassword())
+                    final Collection<Lesson> lessons = scraper.getLessons(u.getMatricola(), u.getPassword())
                             .stream()
                             .filter(l -> u.getLessons().contains(l.getCourseName()))
                             .collect(Collectors.toList());
-                    scraper.bookLessons(u.getUsername(), u.getPassword(), fiscalCode, lessons);
+                    scraper.bookLessons(u.getMatricola(), u.getPassword(), fiscalCode, lessons);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
