@@ -550,7 +550,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         }
         try {
             messenger.sendMessageTo(chat.id(), "Elaborazione...");
-
+            scraper.bookLessons(kairosUser.getUsername(), kairosUser.getPassword(), scraper.getCodiceFiscale(kairosUser.getUsername(), kairosUser.getPassword()), );
             final List<Lesson> courses = booker.book(kairosUser.getMatricola(), kairosUser.getPassword(), message);
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
             courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));

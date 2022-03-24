@@ -85,6 +85,14 @@ public class BookerScraper {
                 .collect(Collectors.toList());
     }
 
+    public Collection<Prenotazioni> getPrenotazioni(String username, String password) throws IOException, InterruptedException {
+        return loginAndGetBookings(username, password)
+                .stream()
+                .map(LessonsResponse::getPrenotazioni)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
     public boolean bookLessons(String username, String password, String codiceFiscale, Collection<Prenotazioni> lessonsToBook) throws IOException {
         final String formattedCookies = formatCookies(getLoginCookies(username, password));
         String formattedLessons = formatLessons(lessonsToBook);
