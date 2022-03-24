@@ -32,6 +32,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -182,7 +183,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         try {
             return buttonsOfLessons(kairosUser, "Scegli un corso");
         } catch (Exception e) {
-            log.error(e.getMessage());
+            e.printStackTrace();
             return loginError(chat.id());
         }
     }
@@ -591,7 +592,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return kairosUser.isRemovingAutoBooking() || kairosUser.isAddingAutoBooking() || kairosUser.isAddingMatricola() || kairosUser.isAddingPassword() || kairosUser.isWritingReport();
     }
 
-    private SendMessage buttonsOfLessons(KairosUser kairosUser, String message) throws IOException, InterruptedException {
+    private SendMessage buttonsOfLessons(KairosUser kairosUser, String message) throws IOException, InterruptedException, ParseException {
         final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword());
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
         lessons.forEach(l -> lessonsMenu.addRow(l.getCourseName() + " - " + l.getDate() + " " + (l.isBooked() ? "[🟢]" : "[🔴]")));

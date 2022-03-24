@@ -15,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,7 +59,8 @@ public class BookerScraper {
         return lineOfCodiceFiscale;
     }
 
-    public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException {
+    public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException, ParseException {
+        DateFormat df = new SimpleDateFormat("EEEE, dd MMMM yyyy");
         final List<Lesson> lessons = new LinkedList<>();
         final List<LessonsResponse> lessonsResponses = loginAndGetBookings(username, password);
         final List<Prenotazioni> prenotazioniList = lessonsResponses.stream().map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
@@ -66,7 +70,7 @@ public class BookerScraper {
                         .courseName(prenotazioni.getNome())
                         .classroom(prenotazioni.getAula())
                         .isBooked(prenotazioni.getPrenotata())
-                        .date(lessonsResponse.getData())
+                        .date(df.format(lessonsResponse.getData()))     // TODO - correctly formatting date {EEEE, dd MMMM}
                         .startTime(prenotazioni.getOraInizio())
                         .endTime(prenotazioni.getOraFine())
                         .entryId(prenotazioni.getEntryId())
