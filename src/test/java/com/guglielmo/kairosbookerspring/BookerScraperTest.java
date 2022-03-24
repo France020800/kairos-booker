@@ -65,4 +65,13 @@ public class BookerScraperTest {
         log.info("Lezione da prenotare: {}", firstBookableLesson);
         //assertThat(bookerScraper.cancelBooking(username, password, bookerScraper.getCodiceFiscale(username, password), List.of(firstBookableLesson))).isTrue();
     }
+
+    @Test
+    public void testScegliCorsi() throws IOException, InterruptedException {
+        String username = "7032141";
+        String password = "c1p80040";
+        final List<String> coursesName = bookerScraper.getCoursesName(username, password);
+        assertThat(coursesName).isNotEmpty();
+        log.info("Courses: {}", coursesName);
+    }
 }
