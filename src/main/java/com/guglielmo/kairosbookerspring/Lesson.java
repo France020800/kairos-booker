@@ -12,4 +12,5 @@ public class Lesson {
     private String endTime;
     private String date;
     private String classroom;
+    private Integer entryId;
 }

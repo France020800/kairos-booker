@@ -69,6 +69,7 @@ public class BookerScraper {
                         .date(lessonsResponse.getData())
                         .startTime(prenotazioni.getOraInizio())
                         .endTime(prenotazioni.getOraFine())
+                        .entryId(prenotazioni.getEntryId())
                         .build();
                 lessons.add(lesson);
             }
@@ -93,7 +94,7 @@ public class BookerScraper {
                 .collect(Collectors.toList());
     }
 
-    public boolean bookLessons(String username, String password, String codiceFiscale, Collection<Prenotazioni> lessonsToBook) throws IOException {
+    public boolean bookLessons(String username, String password, String codiceFiscale, Collection<Lesson> lessonsToBook) throws IOException {
         final String formattedCookies = formatCookies(getLoginCookies(username, password));
         String formattedLessons = formatLessons(lessonsToBook);
         String requestUrl = "https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=salva_prenotazioni&codice_fiscale=" + codiceFiscale + "&id_entries=[" + formattedLessons + "]";
@@ -124,8 +125,8 @@ public class BookerScraper {
 
     }
 
-    private String formatLessons(Collection<Prenotazioni> lessons) {
-        return lessons.stream().map(Prenotazioni::getEntryId).map(String::valueOf).collect(Collectors.joining(","));
+    private String formatLessons(Collection<Lesson> lessons) {
+        return lessons.stream().map(Lesson::getEntryId).map(String::valueOf).collect(Collectors.joining(","));
     }
 
     private Set<Cookie> getLoginCookies(String username, String password) throws IOException {
@@ -160,7 +161,7 @@ public class BookerScraper {
         return cookies;
     }
 
-    public boolean cancelBooking(String username, String password, String codiceFiscale, Collection<Prenotazioni> prenotazioniCollection) throws IOException {
+    public boolean cancelBooking(String username, String password, String codiceFiscale, Collection<Lesson> prenotazioniCollection) throws IOException {
         final String formattedCookies = formatCookies(getLoginCookies(username, password));
         String formattedLessons = formatLessons(prenotazioniCollection);
         HttpResponse<String> response = Unirest.post("https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=cancella_prenotazioni&codice_fiscale=" + codiceFiscale + "&id_entries=[" + formattedLessons + "]")
