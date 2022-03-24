@@ -15,10 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -57,6 +54,35 @@ public class BookerScraper {
         String lineOfCodiceFiscale = response.getBody().lines().filter(e -> e.trim().startsWith("var qr_codes_array")).collect(Collectors.joining());
         lineOfCodiceFiscale = lineOfCodiceFiscale.substring(lineOfCodiceFiscale.length() - 19, lineOfCodiceFiscale.length() - 3);
         return lineOfCodiceFiscale;
+    }
+
+    public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException {
+        final List<Lesson> lessons = new LinkedList<>();
+        final List<LessonsResponse> lessonsResponses = loginAndGetBookings(username, password);
+        final List<Prenotazioni> prenotazioniList = lessonsResponses.stream().map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
+        for (LessonsResponse lessonsResponse : lessonsResponses) {
+            for (Prenotazioni prenotazioni : prenotazioniList) {
+                Lesson lesson = Lesson.builder()
+                        .courseName(prenotazioni.getNome())
+                        .classroom(prenotazioni.getAula())
+                        .isBooked(prenotazioni.getPrenotata())
+                        .date(lessonsResponse.getData())
+                        .startTime(prenotazioni.getOraInizio())
+                        .endTime(prenotazioni.getOraFine())
+                        .build();
+                lessons.add(lesson);
+            }
+        }
+        return lessons;
+    }
+
+    public List<String> getCoursesName(String username, String password) throws IOException, InterruptedException {
+        return  loginAndGetBookings(username, password)
+                .stream()
+                .map(LessonsResponse::getPrenotazioni)
+                .flatMap(Collection::stream)
+                .map(Prenotazioni::getNome)
+                .collect(Collectors.toList());
     }
 
     public boolean bookLessons(String username, String password, String codiceFiscale, Collection<Prenotazioni> lessonsToBook) throws IOException {
