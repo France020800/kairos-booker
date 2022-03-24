@@ -19,7 +19,7 @@ public class BookerScraperTest {
     @Test
     public void loginAndGetBookingsTest() throws IOException, InterruptedException {
         final List<LessonsResponse> allUserLessons = bookerScraper
-                .loginAndGetBookings("7032141", "c1p80040");
+                .loginAndGetBookings("7029444", "Mafaldo2000!");
         assertThat(allUserLessons).isNotEmpty();
     }
 
@@ -68,8 +68,8 @@ public class BookerScraperTest {
 
     @Test
     public void testScegliCorsi() throws IOException, InterruptedException {
-        String username = "7032141";
-        String password = "c1p80040";
+        String username = "7029444";
+        String password = "Mafaldo2000!";
         final List<String> coursesName = bookerScraper.getCoursesName(username, password);
         assertThat(coursesName).isNotEmpty();
         log.info("Courses: {}", coursesName);
