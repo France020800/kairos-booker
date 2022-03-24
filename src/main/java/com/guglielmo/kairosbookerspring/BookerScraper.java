@@ -59,9 +59,10 @@ public class BookerScraper {
         return lineOfCodiceFiscale;
     }
 
-    public boolean bookLessons(String username, String password, Collection<Prenotazioni> lessonsToBook) throws IOException {
+    public boolean bookLessons(String username, String password, String codiceFiscale, Collection<Prenotazioni> lessonsToBook) throws IOException {
         final String formattedCookies = formatCookies(getLoginCookies(username, password));
-        String requestUrl = "https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=salva_prenotazioni&codice_fiscale=BRTGLL00C26G713C&id_entries=[" + lessonsToBook.stream().map(Prenotazioni::getEntryId).map(String::valueOf).collect(Collectors.joining(",")) + "]";
+        String formattedLessons = formatLessons(lessonsToBook);
+        String requestUrl = "https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=salva_prenotazioni&codice_fiscale=" + codiceFiscale + "&id_entries=[" + formattedLessons + "]";
         HttpResponse<String> response = Unirest.post(requestUrl)
                 .header("Connection", "keep-alive")
                 .header("Pragma", "no-cache")
@@ -87,6 +88,10 @@ public class BookerScraper {
         log.info("Response: {}", response.getBody());
         return response.getStatus() == 200;
 
+    }
+
+    private String formatLessons(Collection<Prenotazioni> lessons) {
+        return lessons.stream().map(Prenotazioni::getEntryId).map(String::valueOf).collect(Collectors.joining(","));
     }
 
     private Set<Cookie> getLoginCookies(String username, String password) throws IOException {
@@ -119,6 +124,33 @@ public class BookerScraper {
         final Set<Cookie> cookies = webClient.getCookieManager().getCookies();
         webClient.getCookieManager().clearCookies();
         return cookies;
+    }
+
+    public boolean cancelBooking(String username, String password, String codiceFiscale, Collection<Prenotazioni> prenotazioniCollection) throws IOException {
+        final String formattedCookies = formatCookies(getLoginCookies(username, password));
+        String formattedLessons = formatLessons(prenotazioniCollection);
+        HttpResponse<String> response = Unirest.post("https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=cancella_prenotazioni&codice_fiscale=" + codiceFiscale + "&id_entries=[" + formattedLessons + "]")
+                .header("Connection", "keep-alive")
+                .header("Pragma", "no-cache")
+                .header("Cache-Control", "no-cache")
+                .header("sec-ch-ua", "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"99\", \"Google Chrome\";v=\"99\"")
+                .header("DNT", "1")
+                .header("sec-ch-ua-mobile", "?0")
+                .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36")
+                .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                .header("Accept", "application/json, text/javascript, */*; q=0.01")
+                .header("X-Requested-With", "XMLHttpRequest")
+                .header("sec-ch-ua-platform", "\"macOS\"")
+                .header("Origin", "https://kairos.unifi.it")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-Mode", "cors")
+                .header("Sec-Fetch-Dest", "empty")
+                .header("Referer", "https://kairos.unifi.it/agendaweb/index.php?view=prenotalezione&include=prenotalezione&_lang=it")
+                .header("Accept-Language", "en-US,en;q=0.9,it;q=0.8,ja;q=0.7")
+                .header("Cookie", formattedCookies)
+                .header("sec-gpc", "1")
+                .asString();
+        return response.getStatus() == 200;
     }
 
     private HttpResponse<String> getKairosDataJson(Set<Cookie> cookies) {

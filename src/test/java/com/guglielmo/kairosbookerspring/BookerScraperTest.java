@@ -36,7 +36,7 @@ public class BookerScraperTest {
                 .findFirst()
                 .orElseThrow();
         log.info("Lezione da prenotare: {}", firstBookableLesson);
-        assertThat(bookerScraper.bookLessons(username, password, List.of(firstBookableLesson))).isTrue();
+        assertThat(bookerScraper.bookLessons(username, password, bookerScraper.getCodiceFiscale(username, password), List.of(firstBookableLesson))).isTrue();
     }
 
     @Test
@@ -47,5 +47,22 @@ public class BookerScraperTest {
         final String codiceFiscale = bookerScraper.getCodiceFiscale(username, password);
         assertThat(codiceFiscale).isNotNull();
         log.info("Codice fiscale: {}", codiceFiscale);
+    }
+
+    @Test
+    public void cancelBooking() throws IOException, InterruptedException {
+        String username = "7032141";
+        String password = "c1p80040";
+
+        final Prenotazioni firstBookableLesson = bookerScraper.loginAndGetBookings(username, password)
+                .stream()
+                .map(LessonsResponse::getPrenotazioni)
+                .flatMap(Collection::stream)
+                .filter(e -> e.getPrenotabile() && e.getPrenotata())
+                .skip(3)
+                .findFirst()
+                .orElseThrow();
+        log.info("Lezione da prenotare: {}", firstBookableLesson);
+        assertThat(bookerScraper.cancelBooking(username, password, bookerScraper.getCodiceFiscale(username, password), List.of(firstBookableLesson))).isTrue();
     }
 }
