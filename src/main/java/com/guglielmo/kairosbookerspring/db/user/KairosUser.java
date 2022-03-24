@@ -33,6 +33,9 @@ public class KairosUser {
     @Column(name = "chat_id", unique = true)
     private Long chadId;
 
+    @Column(name = "fiscal_code")
+    private String fiscalCode;
+
     @Column(name = "adding_matricola", columnDefinition = "boolean default false")
     private boolean addingMatricola;
 

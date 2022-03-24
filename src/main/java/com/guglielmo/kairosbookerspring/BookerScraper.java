@@ -15,10 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -59,7 +56,45 @@ public class BookerScraper {
         return lineOfCodiceFiscale;
     }
 
-    public boolean bookLessons(String username, String password, String codiceFiscale, Collection<Prenotazioni> lessonsToBook) throws IOException {
+    public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException {
+        final List<Lesson> lessons = new LinkedList<>();
+        final List<LessonsResponse> lessonsResponses = loginAndGetBookings(username, password);
+        final List<Prenotazioni> prenotazioniList = lessonsResponses.stream().map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
+        for (LessonsResponse lessonsResponse : lessonsResponses) {
+            for (Prenotazioni prenotazioni : prenotazioniList) {
+                Lesson lesson = Lesson.builder()
+                        .courseName(prenotazioni.getNome())
+                        .classroom(prenotazioni.getAula())
+                        .isBooked(prenotazioni.getPrenotata())
+                        .date(lessonsResponse.getData())
+                        .startTime(prenotazioni.getOraInizio())
+                        .endTime(prenotazioni.getOraFine())
+                        .entryId(prenotazioni.getEntryId())
+                        .build();
+                lessons.add(lesson);
+            }
+        }
+        return lessons;
+    }
+
+    public List<String> getCoursesName(String username, String password) throws IOException, InterruptedException {
+        return  loginAndGetBookings(username, password)
+                .stream()
+                .map(LessonsResponse::getPrenotazioni)
+                .flatMap(Collection::stream)
+                .map(Prenotazioni::getNome)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<Prenotazioni> getPrenotazioni(String username, String password) throws IOException, InterruptedException {
+        return loginAndGetBookings(username, password)
+                .stream()
+                .map(LessonsResponse::getPrenotazioni)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
+    public boolean bookLessons(String username, String password, String codiceFiscale, Collection<Lesson> lessonsToBook) throws IOException {
         final String formattedCookies = formatCookies(getLoginCookies(username, password));
         String formattedLessons = formatLessons(lessonsToBook);
         String requestUrl = "https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=salva_prenotazioni&codice_fiscale=" + codiceFiscale + "&id_entries=[" + formattedLessons + "]";
@@ -90,8 +125,8 @@ public class BookerScraper {
 
     }
 
-    private String formatLessons(Collection<Prenotazioni> lessons) {
-        return lessons.stream().map(Prenotazioni::getEntryId).map(String::valueOf).collect(Collectors.joining(","));
+    private String formatLessons(Collection<Lesson> lessons) {
+        return lessons.stream().map(Lesson::getEntryId).map(String::valueOf).collect(Collectors.joining(","));
     }
 
     private Set<Cookie> getLoginCookies(String username, String password) throws IOException {
@@ -126,7 +161,7 @@ public class BookerScraper {
         return cookies;
     }
 
-    public boolean cancelBooking(String username, String password, String codiceFiscale, Collection<Prenotazioni> prenotazioniCollection) throws IOException {
+    public boolean cancelBooking(String username, String password, String codiceFiscale, Collection<Lesson> prenotazioniCollection) throws IOException {
         final String formattedCookies = formatCookies(getLoginCookies(username, password));
         String formattedLessons = formatLessons(prenotazioniCollection);
         HttpResponse<String> response = Unirest.post("https://kairos.unifi.it/agendaweb/call_ajax.php?language=it&mode=cancella_prenotazioni&codice_fiscale=" + codiceFiscale + "&id_entries=[" + formattedLessons + "]")

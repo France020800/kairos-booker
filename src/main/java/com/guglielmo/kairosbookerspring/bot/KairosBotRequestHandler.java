@@ -5,7 +5,10 @@ import com.github.kshashov.telegram.api.bind.annotation.BotController;
 import com.github.kshashov.telegram.api.bind.annotation.BotPathVariable;
 import com.github.kshashov.telegram.api.bind.annotation.request.MessageRequest;
 import com.guglielmo.kairosbookerspring.Booker;
+import com.guglielmo.kairosbookerspring.BookerScraper;
 import com.guglielmo.kairosbookerspring.Lesson;
+import com.guglielmo.kairosbookerspring.api.response.pojo.LessonsResponse;
+import com.guglielmo.kairosbookerspring.api.response.pojo.Prenotazioni;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistory;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistoryRepository;
 import com.guglielmo.kairosbookerspring.db.devUser.DevUser;
@@ -27,12 +30,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @BotController
 @Slf4j
@@ -50,7 +52,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     private final TelegramBot devBot;
 
 
-    private Booker booker;
+    private BookerScraper scraper;
 
     @Value("${bot.token}")
     private String botToken;
@@ -66,7 +68,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         this.chatHistoryRepository = chatHistoryRepository;
         this.lessonToBookRepository = lessonToBookRepository;
         this.devUserRepository = devUserRepository;
-        this.booker = new Booker();
+        this.scraper = new BookerScraper();
         this.devBot = new TelegramBot(devToken);
         this.messenger = kairosBotMessanger;
     }
@@ -126,7 +128,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     public String setMatricola(Chat chat) {
         logMessage("/matricola", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
-        if (!optionalUser.isPresent())
+        if (optionalUser.isEmpty())
             return "Utente non registrato!\n" +
                     "Per favore reinizializza il bot con il comando /start";
         final KairosUser kairosUser = optionalUser.get();
@@ -164,7 +166,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @return The lessons menu
      */
     @MessageRequest("/prenota")
-    public BaseRequest getCurses(Chat chat) {
+    public BaseRequest getLessons(Chat chat) {
         logMessage("/prenota", chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (optionalUser.isEmpty())
@@ -178,16 +180,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     "Inserire /matricola e /password");
         messenger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
         try {
-            final List<Lesson> courses = booker.getCourses(kairosUser.getMatricola(), kairosUser.getPassword());
-            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
-            //updateLessons(courses, user);
-            final SendMessage request = new SendMessage(kairosUser.getChadId(), "Scegli un corso")
-                    .parseMode(ParseMode.HTML)
-                    .disableWebPagePreview(true)
-                    .disableNotification(true)
-                    .replyMarkup(lessonsMenu);
-            return request;
+            return buttonsOfLessons(kairosUser, "Scegli un corso");
         } catch (Exception e) {
             log.error(e.getMessage());
             return loginError(chat.id());
@@ -238,9 +231,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     "Inserire /matricola e /password");
         try {
             messenger.sendMessageTo(chat.id(), "Ricerca delle lezioni in corso...");
-            final List<String> courses = booker.getCoursesName(kairosUser.getMatricola(), kairosUser.getPassword());
+            final List<String> courses = scraper.getCoursesName(kairosUser.getUsername(), kairosUser.getPassword());
             final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-            courses.forEach(e -> lessonsMenu.addRow(e));
+            courses.forEach(lessonsMenu::addRow);
             lessonsMenu.addRow("FINE");
             final SendMessage request = new SendMessage(kairosUser.getChadId(),
                     "Seleziona i corsi da prenotare automaticamente.\n"
@@ -338,7 +331,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final List<String> courses = new LinkedList<>();
         lessonsToBook.forEach(e -> courses.add(e.getCourseName()));
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        courses.forEach(e -> lessonsMenu.addRow(e));
+        courses.forEach(lessonsMenu::addRow);
         lessonsMenu.addRow("FINE");
         return new SendMessage(chat.id(),
                 "Seleziona i corsi da rimuovere dalla prenotazione automatica.\n"
@@ -430,7 +423,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
      * @return The outcome of the operation
      */
     @MessageRequest("{lesson:.*}")
-    public BaseRequest messageManager(@BotPathVariable("lesson") String message, Chat chat) {
+    public BaseRequest messageManager(@BotPathVariable("lesson") String message, Chat chat) throws IOException {
         logMessage(message, chat.id());
         final Optional<KairosUser> optionalUser = userRepository.findByChadId(chat.id());
         if (!optionalUser.isPresent())
@@ -541,22 +534,29 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 "Per terminare digita 'FINE', altrimenti scegli un altro corso.");
     }
 
-    private BaseRequest choosingAndBookLesson(String message, Chat chat, KairosUser kairosUser) {
+    private BaseRequest choosingAndBookLesson(String message, Chat chat, KairosUser kairosUser) throws IOException {
         if (isLessonWrongFormat(message)) {
             return new SendMessage(chat.id(), "Comando non disponibile");
         }
+        String fiscalCode;
+        if (kairosUser.getFiscalCode() == null)
+            fiscalCode = scraper.getCodiceFiscale(kairosUser.getUsername(), kairosUser.getPassword());
+        else
+            fiscalCode = kairosUser.getFiscalCode();
         try {
             messenger.sendMessageTo(chat.id(), "Elaborazione...");
-            final List<Lesson> courses = booker.book(kairosUser.getMatricola(), kairosUser.getPassword(), message);
-            final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-            courses.forEach(e -> lessonsMenu.addRow(e.getCourseName() + " - " + e.getDate() + " " + (e.isBooked() ? "[🟢]" : "[🔴]")));
-            final Lesson lesson = courses.stream().filter(e -> (e.getCourseName() + " - " + e.getDate() + " " + (!e.isBooked() ? "[🟢]" : "[🔴]")).equals(message)).findFirst().get();
-            final SendMessage request = new SendMessage(kairosUser.getChadId(), lesson.isBooked() ? "Lezione prenotata" : "Prenotazione annullata")
-                    .parseMode(ParseMode.HTML)
-                    .disableWebPagePreview(true)
-                    .disableNotification(true)
-                    .replyMarkup(lessonsMenu);
-            return request;
+            final List<Lesson> lessons = scraper.getLessons(kairosUser.getUsername(), kairosUser.getPassword())
+                    .stream()
+                    .filter(l -> (l.getCourseName() + " - " + l.getDate() + " " + (l.isBooked() ? "[🟢]" : "[🔴]")).equals(message))
+                    .collect(Collectors.toList());
+            if (lessons.isEmpty())
+                return new SendMessage(chat.id(), "Comando non riconosciuto");
+            final Lesson lesson = lessons.stream().findFirst().get();
+            if (lesson.isBooked())
+                scraper.cancelBooking(kairosUser.getUsername(), kairosUser.getPassword(), fiscalCode, lessons);
+            else
+                scraper.bookLessons(kairosUser.getUsername(), kairosUser.getPassword(), fiscalCode, lessons);
+            return buttonsOfLessons(kairosUser, lesson.isBooked() ? "Prenotazione cancellata!" : "Prenotazione effettuata!");
         } catch (Exception e) {
             return loginError(chat.id());
         }
@@ -589,17 +589,35 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return kairosUser.isRemovingAutoBooking() || kairosUser.isAddingAutoBooking() || kairosUser.isAddingMatricola() || kairosUser.isAddingPassword() || kairosUser.isWritingReport();
     }
 
+    private SendMessage buttonsOfLessons(KairosUser kairosUser, String message) throws IOException, InterruptedException {
+        final List<Lesson> lessons = scraper.getLessons(kairosUser.getUsername(), kairosUser.getPassword());
+        final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
+        lessons.forEach(l -> lessonsMenu.addRow(l.getCourseName() + " - " + l.getDate() + " " + (l.isBooked() ? "[🟢]" : "[🔴]")));
+
+        //updateLessons(courses, user);
+        final SendMessage request = new SendMessage(kairosUser.getChadId(), message)
+                .parseMode(ParseMode.HTML)
+                .disableWebPagePreview(true)
+                .disableNotification(true)
+                .replyMarkup(lessonsMenu);
+        return request;
+    }
+
     @Scheduled(fixedDelay = 3600000)
     private void autoBooking() {
         log.info("Started auto booking");
         userRepository.findAll().forEach(u -> {
             if (u.isAutoBooking()) {
-                int lessonsBooked;
-                final List<LessonToBook> lessonsToBook = lessonToBookRepository.findByChatId(u.getChadId());
-                final List<String> lessonsName = new LinkedList<>();
-                lessonsToBook.stream().map(LessonToBook::getCourseName).forEach(lessonsName::add);
-                lessonsBooked = booker.autoBook(u.getMatricola(), u.getPassword(), lessonsName);
-                if (lessonsBooked > 0) messenger.sendMessageTo(u.getChadId(), "Ho prenotato " + lessonsBooked + " lezioni!");
+                try {
+                    final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getFiscalCode(), u.getPassword()) : u.getFiscalCode();
+                    final Collection<Lesson> lessons = scraper.getLessons(u.getUsername(), u.getPassword())
+                            .stream()
+                            .filter(l -> u.getLessons().contains(l.getCourseName()))
+                            .collect(Collectors.toList());
+                    scraper.bookLessons(u.getUsername(), u.getPassword(), fiscalCode, lessons);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
