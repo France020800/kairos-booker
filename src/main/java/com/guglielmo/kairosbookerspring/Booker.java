@@ -174,11 +174,11 @@ public class Booker {
         for (WebElement booking : bookingsList) {
             final List<WebElement> coursesNameList = booking.findElements(By.cssSelector("div.col-md-6 > div > div.colored-box-section-1 > span.libretto-course-name"));
             for (WebElement courseName : coursesNameList) {
-                coursesName.add(courseName.getText());
+                if (!coursesName.contains(courseName.getText())) coursesName.add(courseName.getText());
             }
         }
         driver.quit();
-        return new LinkedList<>(new LinkedHashSet<>(coursesName));
+        return coursesName;
     }
 
     private Lesson createLesson(WebElement bookingDate, List<WebElement> coursesNameList, List<WebElement> bookingsStatusList, WebElement courseName) {
