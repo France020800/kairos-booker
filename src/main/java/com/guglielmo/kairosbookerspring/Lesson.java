@@ -8,6 +8,9 @@ import lombok.Data;
 public class Lesson {
     private boolean isBooked;
     private String courseName;
-    private String time;
+    private String startTime;
+    private String endTime;
     private String date;
+    private String classroom;
+    private Integer entryId;
 }
