@@ -33,19 +33,15 @@ public class BookerScraper {
         options.setCssEnabled(false);
     }
 
-    protected List<LessonsResponse> loginAndGetBookings(String username, String password) throws IOException, InterruptedException {
+    protected List<LessonsResponse> loginAndGetBookings(String username, String password) throws IOException {
         final Set<Cookie> cookies = getLoginCookies(username, password);
         HttpResponse<String> apiResponse = getKairosDataJson(cookies);
         String responseBody = apiResponse.getBody();
 
 
         String jsonLine = getJsonString(responseBody);
+        log.info("JSON PRENOTATIONS FILE: " + jsonLine);
         final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
-
-//        final List<Prenotazioni> allLessons = Arrays.stream(lessonsResponses)
-//                .map(LessonsResponse::getPrenotazioni)
-//                .flatMap(Collection::stream)
-//                .collect(Collectors.toList());
 
         final List<LessonsResponse> lessonsResponseList = Arrays.stream(lessonsResponses).collect(Collectors.toList());
 
@@ -59,28 +55,26 @@ public class BookerScraper {
         return lineOfCodiceFiscale;
     }
 
-    public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException, ParseException {
-        DateFormat df = new SimpleDateFormat("EEEE, dd MMMM yyyy");
-        DateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd");
+    public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException {
+        DateFormat df = new SimpleDateFormat("EEEE, dd MMMM", Locale.ITALY);
+        DateFormat dateParser = new SimpleDateFormat("dd/MM/yyyy", Locale.ITALY);
         final List<Lesson> lessons = new LinkedList<>();
         final List<LessonsResponse> lessonsResponses = loginAndGetBookings(username, password);
         final List<Prenotazioni> prenotazioniList = lessonsResponses.stream().map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
-        for (LessonsResponse lessonsResponse : lessonsResponses) {
-            for (Prenotazioni prenotazioni : prenotazioniList) {
-
-                final Date date = dateParser.parse(lessonsResponse.getData());
-                Lesson lesson = Lesson.builder()
-                        .courseName(prenotazioni.getNome())
-                        .classroom(prenotazioni.getAula())
-                        .isBooked(prenotazioni.getPrenotata())
+        lessonsResponses.forEach(e -> {
+            try {
+                final Date date = dateParser.parse(e.getData());
+                e.getPrenotazioni().forEach(p -> lessons.add(Lesson.builder()
+                        .courseName(p.getNome())
+                        .classroom(p.getAula())
+                        .isBooked(p.getPrenotata())
                         .date(df.format(date))
-                        .startTime(prenotazioni.getOraInizio())
-                        .endTime(prenotazioni.getOraFine())
-                        .entryId(prenotazioni.getEntryId())
-                        .build();
-                lessons.add(lesson);
-            }
-        }
+                        .startTime(p.getOraInizio())
+                        .endTime(p.getOraFine())
+                        .entryId(p.getEntryId())
+                        .build()));
+            } catch (ParseException ex) {ex.printStackTrace();}
+        });
         return lessons;
     }
 
