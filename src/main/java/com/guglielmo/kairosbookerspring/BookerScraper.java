@@ -61,16 +61,19 @@ public class BookerScraper {
 
     public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException, ParseException {
         DateFormat df = new SimpleDateFormat("EEEE, dd MMMM yyyy");
+        DateFormat dateParser = new SimpleDateFormat("yyyy-MM-dd");
         final List<Lesson> lessons = new LinkedList<>();
         final List<LessonsResponse> lessonsResponses = loginAndGetBookings(username, password);
         final List<Prenotazioni> prenotazioniList = lessonsResponses.stream().map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
         for (LessonsResponse lessonsResponse : lessonsResponses) {
             for (Prenotazioni prenotazioni : prenotazioniList) {
+
+                final Date date = dateParser.parse(lessonsResponse.getData());
                 Lesson lesson = Lesson.builder()
                         .courseName(prenotazioni.getNome())
                         .classroom(prenotazioni.getAula())
                         .isBooked(prenotazioni.getPrenotata())
-                        .date(df.format(lessonsResponse.getData()))     // TODO - correctly formatting date {EEEE, dd MMMM}
+                        .date(df.format(date))
                         .startTime(prenotazioni.getOraInizio())
                         .endTime(prenotazioni.getOraFine())
                         .entryId(prenotazioni.getEntryId())
@@ -82,7 +85,7 @@ public class BookerScraper {
     }
 
     public List<String> getCoursesName(String username, String password) throws IOException, InterruptedException {
-        return  loginAndGetBookings(username, password)
+        return loginAndGetBookings(username, password)
                 .stream()
                 .map(LessonsResponse::getPrenotazioni)
                 .flatMap(Collection::stream)
