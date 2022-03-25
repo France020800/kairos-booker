@@ -137,7 +137,7 @@ public class BookerScraper {
         return lessons.stream().map(Lesson::getEntryId).map(String::valueOf).collect(Collectors.joining(","));
     }
 
-    private Set<Cookie> getLoginCookies(String username, String password) throws IOException {
+    protected Set<Cookie> getLoginCookies(String username, String password) throws IOException {
         String kairosFormPage = "https://kairos.unifi.it/agendaweb/index.php?view=login&include=login&from=prenotalezione&from_include=prenotalezione&_lang=en";
 
         final HtmlPage page = webClient.getPage(kairosFormPage);
@@ -164,7 +164,7 @@ public class BookerScraper {
         final HtmlElement loginButton = loginForm.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
         loginButton.click();
 
-        final Set<Cookie> cookies = webClient.getCookieManager().getCookies();
+        final Set<Cookie> cookies = webClient.getCookieManager().getCookies().stream().filter(e -> e.getName().equals("PHPSESSID")).collect(Collectors.toSet());
         webClient.getCookieManager().clearCookies();
         return cookies;
     }
