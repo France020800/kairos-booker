@@ -180,8 +180,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         try {
             return buttonsOfLessons(kairosUser, "Scegli un corso");
         } catch (Exception e) {
-            e.printStackTrace();
-            return loginError(chat.id());
+            return loginError(chat.id(), e);
         }
     }
 
@@ -244,8 +243,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             userRepository.save(kairosUser);
             return request;
         } catch (Exception e) {
-            e.printStackTrace();
-            return loginError(chat.id());
+            return loginError(chat.id(), e);
         }
     }
 
@@ -384,8 +382,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
     /**
      * Method that display for users some information on how to use the bot
-     *
-     *
      */
     @MessageRequest("/help")
     public String helpMessage(Chat chat) {
@@ -558,8 +554,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                 scraper.bookLessons(kairosUser.getMatricola(), kairosUser.getPassword(), fiscalCode, lessons);
             return buttonsOfLessons(kairosUser, lesson.isBooked() ? "Prenotazione cancellata!" : "Prenotazione effettuata!");
         } catch (Exception e) {
-            e.printStackTrace();
-            return loginError(chat.id());
+            return loginError(chat.id(), e);
         }
     }
 
