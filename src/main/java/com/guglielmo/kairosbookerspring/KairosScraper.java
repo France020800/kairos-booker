@@ -22,64 +22,69 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class BookerScraper {
+public class KairosScraper {
 
     private final WebClient webClient;
 
-    public BookerScraper() {
+    public KairosScraper() {
         this.webClient = new WebClient();
         final WebClientOptions options = webClient.getOptions();
         options.setJavaScriptEnabled(false);
         options.setCssEnabled(false);
     }
 
-    protected List<LessonsResponse> loginAndGetBookings(String username, String password) throws IOException {
+    protected List<LessonsResponse> getBookings(String username, String password) throws IOException {
         final Set<Cookie> cookies = getLoginCookies(username, password);
         HttpResponse<String> apiResponse = getKairosDataJson(cookies);
         String responseBody = apiResponse.getBody();
 
+        String lessonsJson = getJsonString(responseBody);
+        final LessonsResponse[] lessonsResponses = new Gson().fromJson(lessonsJson, LessonsResponse[].class);
 
-        String jsonLine = getJsonString(responseBody);
-        log.info("JSON PRENOTATIONS FILE: " + jsonLine);
-        final LessonsResponse[] lessonsResponses = new Gson().fromJson(jsonLine, LessonsResponse[].class);
-
-        final List<LessonsResponse> lessonsResponseList = Arrays.stream(lessonsResponses).collect(Collectors.toList());
-
-        return lessonsResponseList;
+        return Arrays.stream(lessonsResponses).collect(Collectors.toList());
     }
 
     public String getCodiceFiscale(String username, String password) throws IOException {
-        final HttpResponse<String> response = getKairosDataJson(getLoginCookies(username, password));
-        String lineOfCodiceFiscale = response.getBody().lines().filter(e -> e.trim().startsWith("var qr_codes_array")).collect(Collectors.joining());
-        lineOfCodiceFiscale = lineOfCodiceFiscale.substring(lineOfCodiceFiscale.length() - 19, lineOfCodiceFiscale.length() - 3);
-        return lineOfCodiceFiscale;
+        final Set<Cookie> loginCookies = getLoginCookies(username, password);
+        final HttpResponse<String> response = getKairosDataJson(loginCookies);
+
+        String lineOfCodiceFiscale = response.getBody()
+                .lines()
+                .filter(e -> e.trim().startsWith("var qr_codes_array"))
+                .collect(Collectors.joining());
+        String codiceFiscale = lineOfCodiceFiscale.substring(lineOfCodiceFiscale.length() - 19, lineOfCodiceFiscale.length() - 3);
+        return codiceFiscale;
     }
 
-    public List<Lesson> getLessons(String username, String password) throws IOException, InterruptedException {
+    public List<Lesson> getLessons(String username, String password) throws IOException {
         DateFormat df = new SimpleDateFormat("EEEE, dd MMMM", Locale.ITALY);
         DateFormat dateParser = new SimpleDateFormat("dd/MM/yyyy", Locale.ITALY);
         final List<Lesson> lessons = new LinkedList<>();
-        final List<LessonsResponse> lessonsResponses = loginAndGetBookings(username, password);
-        final List<Prenotazioni> prenotazioniList = lessonsResponses.stream().map(LessonsResponse::getPrenotazioni).flatMap(Collection::stream).collect(Collectors.toList());
-        lessonsResponses.forEach(e -> {
+        final List<LessonsResponse> lessonsResponses = getBookings(username, password);
+        lessonsResponses.stream().forEach(e -> {
             try {
                 final Date date = dateParser.parse(e.getData());
-                e.getPrenotazioni().forEach(p -> lessons.add(Lesson.builder()
-                        .courseName(p.getNome())
-                        .classroom(p.getAula())
-                        .isBooked(p.getPrenotata())
-                        .date(df.format(date))
-                        .startTime(p.getOraInizio())
-                        .endTime(p.getOraFine())
-                        .entryId(p.getEntryId())
-                        .build()));
-            } catch (ParseException ex) {ex.printStackTrace();}
+                e.getPrenotazioni()
+                        .stream()
+                        .map(lesson -> Lesson.builder()
+                                .courseName(lesson.getNome())
+                                .classroom(lesson.getAula())
+                                .isBooked(lesson.getPrenotata())
+                                .date(df.format(date))
+                                .startTime(lesson.getOraInizio())
+                                .endTime(lesson.getOraFine())
+                                .entryId(lesson.getEntryId())
+                                .build())
+                        .forEach(lessons::add);
+            } catch (ParseException ex) {
+                ex.printStackTrace();
+            }
         });
         return lessons;
     }
 
-    public List<String> getCoursesName(String username, String password) throws IOException, InterruptedException {
-        return loginAndGetBookings(username, password)
+    public List<String> getCoursesName(String username, String password) throws IOException {
+        return getBookings(username, password)
                 .stream()
                 .map(LessonsResponse::getPrenotazioni)
                 .flatMap(Collection::stream)
@@ -88,8 +93,8 @@ public class BookerScraper {
                 .collect(Collectors.toList());
     }
 
-    public Collection<Prenotazioni> getPrenotazioni(String username, String password) throws IOException, InterruptedException {
-        return loginAndGetBookings(username, password)
+    public Collection<Prenotazioni> getPrenotazioni(String username, String password) throws IOException {
+        return getBookings(username, password)
                 .stream()
                 .map(LessonsResponse::getPrenotazioni)
                 .flatMap(Collection::stream)
@@ -158,7 +163,11 @@ public class BookerScraper {
         final HtmlElement loginButton = loginForm.querySelector("body > div > div > div > div.column.one > form > div:nth-child(5) > button");
         loginButton.click();
 
-        final Set<Cookie> cookies = webClient.getCookieManager().getCookies().stream().filter(e -> e.getName().equals("PHPSESSID")).collect(Collectors.toSet());
+        final Set<Cookie> cookies = webClient.getCookieManager()
+                .getCookies()
+                .stream()
+                .filter(e -> e.getName().equals("PHPSESSID"))
+                .collect(Collectors.toSet());
         webClient.getCookieManager().clearCookies();
         return cookies;
     }
@@ -216,12 +225,16 @@ public class BookerScraper {
     }
 
     private String formatCookies(Set<Cookie> cookies) {
-        return cookies.stream().map(e -> e.getName() + "=" + e.getValue()).collect(Collectors.joining(";"));
+        return cookies.stream()
+                .map(e -> e.getName() + "=" + e.getValue())
+                .collect(Collectors.joining(";"));
     }
 
     @NotNull
     private String getJsonString(String responseBody) {
-        String jsonLine = responseBody.lines().filter(e -> e.trim().startsWith("var lezioni_prenotabili")).collect(Collectors.joining());
+        String jsonLine = responseBody.lines()
+                .filter(line -> line.trim().startsWith("var lezioni_prenotabili"))
+                .collect(Collectors.joining());
         jsonLine = jsonLine.substring(" \t\t\tvar lezioni_prenotabili = JSON.parse(".length());
         jsonLine = jsonLine.substring(0, jsonLine.length() - 4);
         return jsonLine;

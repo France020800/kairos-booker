@@ -14,14 +14,14 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-public class BookerScraperTest {
+public class KairosScraperTest {
 
-    private BookerScraper bookerScraper = new BookerScraper();
+    private KairosScraper kairosScraper = new KairosScraper();
 
     @Test
     public void loginAndGetBookingsTest() throws IOException, InterruptedException {
-        final List<LessonsResponse> allUserLessons = bookerScraper
-                .loginAndGetBookings("7029444", "Mafaldo2000!");
+        final List<LessonsResponse> allUserLessons = kairosScraper
+                .getBookings("7029444", "Mafaldo2000!");
         assertThat(allUserLessons).isNotEmpty();
     }
 
@@ -29,7 +29,7 @@ public class BookerScraperTest {
     public void testGetCookies() throws IOException {
         String username = "7032141";
         String password = "c1p80040";
-        final Set<Cookie> loginCookies = bookerScraper.getLoginCookies(username, password);
+        final Set<Cookie> loginCookies = kairosScraper.getLoginCookies(username, password);
         log.info("Cookies: {}",loginCookies);
     }
 
@@ -38,7 +38,7 @@ public class BookerScraperTest {
         String username = "7032141";
         String password = "c1p80040";
 
-        final Prenotazioni firstBookableLesson = bookerScraper.loginAndGetBookings(username, password)
+        final Prenotazioni firstBookableLesson = kairosScraper.getBookings(username, password)
                 .stream()
                 .map(LessonsResponse::getPrenotazioni)
                 .flatMap(Collection::stream)
@@ -54,7 +54,7 @@ public class BookerScraperTest {
         String username = "7032141";
         String password = "c1p80040";
 
-        final String codiceFiscale = bookerScraper.getCodiceFiscale(username, password);
+        final String codiceFiscale = kairosScraper.getCodiceFiscale(username, password);
         assertThat(codiceFiscale).isNotNull();
         log.info("Codice fiscale: {}", codiceFiscale);
     }
@@ -64,7 +64,7 @@ public class BookerScraperTest {
         String username = "7032141";
         String password = "c1p80040";
 
-        final Prenotazioni firstBookableLesson = bookerScraper.loginAndGetBookings(username, password)
+        final Prenotazioni firstBookableLesson = kairosScraper.getBookings(username, password)
                 .stream()
                 .map(LessonsResponse::getPrenotazioni)
                 .flatMap(Collection::stream)
@@ -80,7 +80,7 @@ public class BookerScraperTest {
     public void testScegliCorsi() throws IOException, InterruptedException {
         String username = "7029444";
         String password = "Mafaldo2000!";
-        final List<String> coursesName = bookerScraper.getCoursesName(username, password);
+        final List<String> coursesName = kairosScraper.getCoursesName(username, password);
         assertThat(coursesName).isNotEmpty();
         log.info("Courses: {}", coursesName);
     }

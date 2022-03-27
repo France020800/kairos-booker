@@ -4,7 +4,7 @@ import com.github.kshashov.telegram.api.TelegramMvcController;
 import com.github.kshashov.telegram.api.bind.annotation.BotController;
 import com.github.kshashov.telegram.api.bind.annotation.BotPathVariable;
 import com.github.kshashov.telegram.api.bind.annotation.request.MessageRequest;
-import com.guglielmo.kairosbookerspring.BookerScraper;
+import com.guglielmo.kairosbookerspring.KairosScraper;
 import com.guglielmo.kairosbookerspring.Lesson;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistory;
 import com.guglielmo.kairosbookerspring.db.chat.ChatHistoryRepository;
@@ -50,7 +50,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     private final TelegramBot devBot;
 
 
-    private BookerScraper scraper;
+    private KairosScraper scraper;
 
     @Value("${bot.token}")
     private String botToken;
@@ -66,7 +66,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         this.chatHistoryRepository = chatHistoryRepository;
         this.lessonToBookRepository = lessonToBookRepository;
         this.devUserRepository = devUserRepository;
-        this.scraper = new BookerScraper();
+        this.scraper = new KairosScraper();
         this.devBot = new TelegramBot(devToken);
         this.messenger = kairosBotMessanger;
     }
