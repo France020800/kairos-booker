@@ -13,4 +13,9 @@ public class Lesson {
     private String date;
     private String classroom;
     private Integer entryId;
+
+    @Override
+    public String toString() {
+        return this.getCourseName() + " - " + this.getDate() + " " + (this.isBooked() ? "[🟢]" : "[🔴]");
+    }
 }

@@ -543,7 +543,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             messenger.sendMessageTo(chat.id(), "Elaborazione...");
             final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword())
                     .stream()
-                    .filter(l -> (l.getCourseName() + " - " + l.getDate() + " " + (l.isBooked() ? "[🟢]" : "[🔴]")).equals(message))
+                    .filter(l -> (l.toString()).equals(message))
                     .collect(Collectors.toList());
             if (lessons.isEmpty())
                 return new SendMessage(chat.id(), "Comando non riconosciuto");
@@ -588,7 +588,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
     private SendMessage buttonsOfLessons(KairosUser kairosUser, String message) throws IOException, InterruptedException, ParseException {
         final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword());
         final ReplyKeyboardMarkup lessonsMenu = new ReplyKeyboardMarkup(new KeyboardButton("Lista Corsi"));
-        lessons.forEach(l -> lessonsMenu.addRow(l.getCourseName() + " - " + l.getDate() + " " + (l.isBooked() ? "[🟢]" : "[🔴]")));
+        lessons.forEach(l -> lessonsMenu.addRow(l.toString()));
 
         final SendMessage request = new SendMessage(kairosUser.getChadId(), message)
                 .parseMode(ParseMode.HTML)
