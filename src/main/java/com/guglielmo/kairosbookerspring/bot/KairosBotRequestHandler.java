@@ -607,11 +607,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         log.info("Started auto booking");
         userRepository.findAll().forEach(u -> {
             if (u.isAutoBooking()) {
+                List<String> lessonsName = lessonToBookRepository.findByChatId(u.getChadId()).stream().map(LessonToBook::getCourseName).collect(Collectors.toList());
                 try {
                     final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getMatricola(), u.getPassword()) : u.getFiscalCode();
                     final Collection<Lesson> lessons = scraper.getLessons(u.getMatricola(), u.getPassword())
                             .stream()
-                            .filter(l -> u.getLessons().contains(l.getCourseName()) && !l.isBooked())
+                            .filter(l -> lessonsName.contains(l.getCourseName()) && !l.isBooked())
                             .collect(Collectors.toList());
                     scraper.bookLessons(u.getUsername(), u.getPassword(), fiscalCode, lessons);
                     messenger.sendMessageTo(u.getChadId(), "Ti ho prenotato " + lessons.size() + " lezioni!");
