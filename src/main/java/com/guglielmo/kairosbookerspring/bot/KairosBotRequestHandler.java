@@ -199,6 +199,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final KairosUser kairosUser = optionalKairosUser.get();
         if (checkCommandRunning(kairosUser))
             return "Non puoi usare un comando adesso!";
+        if (kairosUser.getMatricola() == null || kairosUser.getPassword() == null) {
+            return "Effettua prima il login con /matricola e /password.";
+        }
         if (kairosUser.isAutoBooking())
             return "Procedura di auto prenotazione già attiva!";
         kairosUser.setAutoBooking(true);
@@ -598,18 +601,21 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return request;
     }
 
-    @Scheduled(fixedDelay = 3600000)
+    //@Scheduled(fixedDelay = 3600000)
+    @Scheduled(fixedDelay = 300000)
     private void autoBooking() {
         log.info("Started auto booking");
         userRepository.findAll().forEach(u -> {
             if (u.isAutoBooking()) {
+                List<String> lessonsName = lessonToBookRepository.findByChatId(u.getChadId()).stream().map(LessonToBook::getCourseName).collect(Collectors.toList());
                 try {
-                    final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getFiscalCode(), u.getPassword()) : u.getFiscalCode();
+                    final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getMatricola(), u.getPassword()) : u.getFiscalCode();
                     final Collection<Lesson> lessons = scraper.getLessons(u.getMatricola(), u.getPassword())
                             .stream()
-                            .filter(l -> u.getLessons().contains(l.getCourseName()))
+                            .filter(l -> lessonsName.contains(l.getCourseName()) && !l.isBooked())
                             .collect(Collectors.toList());
-                    scraper.bookLessons(u.getUsername(), u.getPassword(), fiscalCode, lessons);
+                    scraper.bookLessons(u.getMatricola(), u.getPassword(), fiscalCode, lessons);
+                    if (lessons.size() > 0) messenger.sendMessageTo(u.getChadId(), "Ti ho prenotato " + lessons.size() + " lezioni!");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

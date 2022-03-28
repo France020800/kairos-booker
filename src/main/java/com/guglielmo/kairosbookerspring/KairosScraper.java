@@ -4,6 +4,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.google.gson.Gson;
@@ -156,6 +157,7 @@ public class KairosScraper {
 
         // Insert username e password
         final HtmlForm loginForm = loginPage.querySelector("body > div > div > div > div.column.one > form");
+        log.info("Matricola: " + username);
         loginForm.getInputByName("j_username").setValueAttribute(username);
         loginForm.getInputByName("j_password").setValueAttribute(password);
 
