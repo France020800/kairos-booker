@@ -160,7 +160,7 @@ public class KairosScraper {
         final HtmlForm loginForm = loginPage.querySelector("body > div > div > div > div.column.one > form");
         log.info("Matricola: " + username);
         HtmlInput j_username = loginForm.getInputByName("j_username");
-        log.info("Username field: " + j_username.asNormalizedText());
+        log.info("Username field: " + j_username.toString());
         j_username.setValueAttribute(username);
         loginForm.getInputByName("j_password").setValueAttribute(password);
 

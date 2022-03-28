@@ -608,7 +608,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         userRepository.findAll().forEach(u -> {
             if (u.isAutoBooking()) {
                 try {
-                    final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getFiscalCode(), u.getPassword()) : u.getFiscalCode();
+                    final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getMatricola(), u.getPassword()) : u.getFiscalCode();
                     final Collection<Lesson> lessons = scraper.getLessons(u.getMatricola(), u.getPassword())
                             .stream()
                             .filter(l -> u.getLessons().contains(l.getCourseName()) && !l.isBooked())
