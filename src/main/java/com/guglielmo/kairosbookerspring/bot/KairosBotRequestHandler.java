@@ -199,6 +199,9 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         final KairosUser kairosUser = optionalKairosUser.get();
         if (checkCommandRunning(kairosUser))
             return "Non puoi usare un comando adesso!";
+        if (kairosUser.getMatricola() == null || kairosUser.getPassword() == null) {
+            return "Effettua prima il login con /matricola e /password.";
+        }
         if (kairosUser.isAutoBooking())
             return "Procedura di auto prenotazione già attiva!";
         kairosUser.setAutoBooking(true);
