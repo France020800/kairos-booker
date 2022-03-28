@@ -453,6 +453,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
 
         // Choosing and book lesson
         else {
+            messenger.sendMessageTo(chat.id(), "Elaborazione...");
             return choosingAndBookLesson(message, chat, kairosUser);
         }
     }
@@ -540,7 +541,6 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         else
             fiscalCode = kairosUser.getFiscalCode();
         try {
-            messenger.sendMessageTo(chat.id(), "Elaborazione...");
             final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword())
                     .stream()
                     .filter(l -> (l.toString()).equals(message))
