@@ -601,8 +601,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         return request;
     }
 
-    //@Scheduled(fixedDelay = 3600000)
-    @Scheduled(fixedDelay = 300000)
+    @Scheduled(fixedDelay = 3600000)
     private void autoBooking() {
         log.info("Started auto booking");
         userRepository.findAll().forEach(u -> {
