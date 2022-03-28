@@ -46,7 +46,6 @@ public class KairosScraper {
     }
 
     public String getCodiceFiscale(String username, String password) throws IOException {
-        log.info("Matricola: " + username);
         final Set<Cookie> loginCookies = getLoginCookies(username, password);
         final HttpResponse<String> response = getKairosDataJson(loginCookies);
 
@@ -159,9 +158,7 @@ public class KairosScraper {
         // Insert username e password
         final HtmlForm loginForm = loginPage.querySelector("body > div > div > div > div.column.one > form");
         log.info("Matricola: " + username);
-        HtmlInput j_username = loginForm.getInputByName("j_username");
-        log.info("Username field: " + j_username.toString());
-        j_username.setValueAttribute(username);
+        loginForm.getInputByName("j_username").setValueAttribute(username);
         loginForm.getInputByName("j_password").setValueAttribute(password);
 
         // Login button
