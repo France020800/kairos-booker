@@ -607,7 +607,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                     final String fiscalCode = u.getFiscalCode() == null ? scraper.getCodiceFiscale(u.getFiscalCode(), u.getPassword()) : u.getFiscalCode();
                     final Collection<Lesson> lessons = scraper.getLessons(u.getMatricola(), u.getPassword())
                             .stream()
-                            .filter(l -> u.getLessons().contains(l.getCourseName()))
+                            .filter(l -> u.getLessons().contains(l.getCourseName()) && !l.isBooked())
                             .collect(Collectors.toList());
                     scraper.bookLessons(u.getUsername(), u.getPassword(), fiscalCode, lessons);
                 } catch (Exception e) {
