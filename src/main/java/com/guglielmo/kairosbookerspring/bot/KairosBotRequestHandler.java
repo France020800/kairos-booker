@@ -615,7 +615,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                             .filter(l -> lessonsName.contains(l.getCourseName()) && !l.isBooked())
                             .collect(Collectors.toList());
                     scraper.bookLessons(u.getMatricola(), u.getPassword(), fiscalCode, lessons);
-                    messenger.sendMessageTo(u.getChadId(), "Ti ho prenotato " + lessons.size() + " lezioni!");
+                    if (lessons.size() > 0) messenger.sendMessageTo(u.getChadId(), "Ti ho prenotato " + lessons.size() + " lezioni!");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
