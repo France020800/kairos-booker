@@ -538,14 +538,12 @@ public class KairosBotRequestHandler implements TelegramMvcController {
         if (isLessonWrongFormat(message)) {
             return new SendMessage(chat.id(), "Comando non disponibile");
         }
-        String fiscalCode;
-        if (kairosUser.getFiscalCode() == null) {
+        String fiscalCode = kairosUser.getFiscalCode();
+        if (fiscalCode == null) {
             fiscalCode = scraper.getCodiceFiscale(kairosUser.getMatricola(), kairosUser.getPassword());
             kairosUser.setFiscalCode(fiscalCode);
             userRepository.save(kairosUser);
         }
-        else
-            fiscalCode = kairosUser.getFiscalCode();
         try {
             final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword())
                     .stream()
@@ -617,10 +615,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
                             .filter(l -> lessonsName.contains(l.getCourseName()) && !l.isBooked())
                             .collect(Collectors.toList());
                     scraper.bookLessons(u.getMatricola(), u.getPassword(), fiscalCode, lessons);
-                    if (lessons.size() > 0) messenger.sendMessageTo(u.getChadId(), "Ti ho prenotato " + lessons.size() + " lezioni!\n\n" +
-                            lessonsName.stream()
-                                    .filter(l -> lessons.stream().map(Lesson::getCourseName).collect(Collectors.toList())
-                                            .contains(l)).collect(Collectors.joining("\n")));
+                    if (lessons.size() > 0)
+                        messenger.sendMessageTo(u.getChadId(), "Ti ho prenotato " + lessons.size() + " lezioni!\n\n" +
+                                lessonsName.stream()
+                                        .filter(l -> lessons.stream().map(Lesson::getCourseName).collect(Collectors.toList())
+                                                .contains(l)).collect(Collectors.joining("\n")));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
