@@ -545,17 +545,17 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             userRepository.save(kairosUser);
         }
         try {
-            final List<Lesson> lessons = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword())
+            final Optional<Lesson> optionalLesson = scraper.getLessons(kairosUser.getMatricola(), kairosUser.getPassword())
                     .stream()
                     .filter(l -> (l.toString()).equals(message))
-                    .collect(Collectors.toList());
-            if (lessons.isEmpty())
+                    .findFirst();
+            if (optionalLesson.isEmpty())
                 return new SendMessage(chat.id(), "Comando non riconosciuto");
-            final Lesson lesson = lessons.stream().findFirst().get();
+            Lesson lesson = optionalLesson.get();
             if (lesson.isBooked())
-                scraper.cancelBooking(kairosUser.getMatricola(), kairosUser.getPassword(), fiscalCode, lessons);
+                scraper.cancelBooking(kairosUser.getMatricola(), kairosUser.getPassword(), fiscalCode, Collections.singleton(lesson));
             else
-                scraper.bookLessons(kairosUser.getMatricola(), kairosUser.getPassword(), fiscalCode, lessons);
+                scraper.bookLessons(kairosUser.getMatricola(), kairosUser.getPassword(), fiscalCode, Collections.singleton(lesson));
             return buttonsOfLessons(kairosUser, lesson.isBooked() ? "Prenotazione cancellata!" : "Prenotazione effettuata!");
         } catch (Exception e) {
             return loginError(chat.id(), e);
