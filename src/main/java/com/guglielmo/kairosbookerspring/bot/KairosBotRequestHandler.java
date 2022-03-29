@@ -539,8 +539,11 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return new SendMessage(chat.id(), "Comando non disponibile");
         }
         String fiscalCode;
-        if (kairosUser.getFiscalCode() == null)
+        if (kairosUser.getFiscalCode() == null) {
             fiscalCode = scraper.getCodiceFiscale(kairosUser.getMatricola(), kairosUser.getPassword());
+            kairosUser.setFiscalCode(fiscalCode);
+            userRepository.save(kairosUser);
+        }
         else
             fiscalCode = kairosUser.getFiscalCode();
         try {
