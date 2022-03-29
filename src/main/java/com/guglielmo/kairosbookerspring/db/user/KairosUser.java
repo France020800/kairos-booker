@@ -48,9 +48,6 @@ public class KairosUser {
     @Column(name = "removing_auto_booking", columnDefinition = "boolean default false")
     private boolean removingAutoBooking;
 
-    @Column(name = "lessons")
-    private String lessons;
-
     @Column(name = "auto_booking", columnDefinition = "boolean default false")
     private boolean autoBooking;
 
