@@ -183,7 +183,7 @@ public class KairosBotRequestHandler implements TelegramMvcController {
             return loginError(chat.id(), e);
         }
     }
-
+ 
     /**
      * Method to start auto booking procedure
      *
